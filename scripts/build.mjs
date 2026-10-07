@@ -1,5 +1,5 @@
 import { cp, mkdir, readFile, writeFile } from 'node:fs/promises';
-import { tracks, mapSize } from '../src/tracks.js';
+import { tracks, mapSize, compass } from '../src/tracks.js';
 
 const escape = value => String(value).replaceAll('&', '&amp;').replaceAll('"', '&quot;').replaceAll('<', '&lt;').replaceAll('>', '&gt;');
 const navigation = tracks.map(track => `<a href="#${track.id}" style="--accent:${track.accent}">${escape(track.name)}</a>`).join('\n');
@@ -13,7 +13,7 @@ const islands = tracks.map((track, index) => `
 let html = await readFile('src/index.html', 'utf8');
 const seaMask = tracks.map(track => `<rect x="${track.x - 145}" y="${track.y}" width="290" height="470" fill="black"/>`).join('');
 const labelMask = tracks.map(track => `<rect x="${track.x - 145}" y="${track.y + 260}" width="290" height="210" fill="black"/>`).join('');
-for (const [key, value] of Object.entries({ NAVIGATION: navigation, ISLANDS: islands, SEA_MASK: seaMask, LABEL_MASK: labelMask, MAP_WIDTH: mapSize.width, MAP_HEIGHT: mapSize.height, TITLE_X: tracks[0].x - 165, TITLE_MASK_X: tracks[0].x - 180 })) html = html.replaceAll(`{{${key}}}`, value);
+for (const [key, value] of Object.entries({ NAVIGATION: navigation, ISLANDS: islands, SEA_MASK: seaMask, LABEL_MASK: labelMask, MAP_WIDTH: mapSize.width, MAP_HEIGHT: mapSize.height, TITLE_X: tracks[0].x - 165, TITLE_MASK_X: tracks[0].x - 180, COMPASS_X: compass.x, COMPASS_Y: compass.y })) html = html.replaceAll(`{{${key}}}`, value);
 await mkdir('dist', { recursive: true });
 await cp('public', 'dist', { recursive: true });
 await mkdir('dist/vendor', { recursive: true });

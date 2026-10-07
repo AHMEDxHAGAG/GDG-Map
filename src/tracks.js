@@ -1,5 +1,24 @@
 // The only source of track copy, artwork, coordinates, and crew destinations.
 export const mapSize = { width: 1880, height: 1940 };
+// The compass rose sits at the centre of the star and is where the map opens.
+export const compass = { x: 940, y: 1000 };
+export const compassPoints = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
+export const leaguesPerUnit = 0.01;
+const islandAnchorOffset = 130;
+
+// Screen bearings read from the rose: 0° is north (up the map), 90° is east.
+export function bearingTo(track, from) {
+  const degrees = (Math.atan2(track.x - from.x, -(track.y + islandAnchorOffset - from.y)) * 180 / Math.PI + 360) % 360;
+  return { degrees, word: compassPoints[Math.round(degrees / 45) % 8] };
+}
+
+export function distanceTo(track, from) {
+  return Math.hypot(track.x - from.x, track.y + islandAnchorOffset - from.y);
+}
+
+export function toLeagues(units) {
+  return Math.round(units * leaguesPerUnit * 10) / 10;
+}
 export const tracks = [
   {
     id: 'web', name: 'Web',

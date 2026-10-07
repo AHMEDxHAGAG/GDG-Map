@@ -119,6 +119,35 @@ test('wave marks roll gently, can be paused, and stop for reduced motion', async
   expect(await wave.getAttribute('d')).toBe(still);
 });
 
+test('mobile starts on the compass with live guidance that hides on arrival', async ({ page }, testInfo) => {
+  test.skip(!testInfo.project.use.hasTouch, 'Mobile start view');
+  await page.goto('/');
+  await page.evaluate(() => document.fonts.ready);
+  // Start view centres the compass rose in the mobile frame.
+  const centred = await page.evaluate(() => {
+    const viewport = document.querySelector('#map-viewport');
+    const compass = { x: 940, y: 1000 };
+    const centre = { x: viewport.scrollLeft + viewport.clientWidth / 2, y: viewport.scrollTop + viewport.clientHeight / 2 };
+    return Math.hypot(compass.x - centre.x, compass.y - centre.y);
+  });
+  expect(centred).toBeLessThan(80);
+  // GPS popup reads a compass point and distance for the nearest off-screen island.
+  const gps = page.locator('#gps');
+  await expect(gps).toBeVisible();
+  await expect(page.locator('#gps-bearing')).not.toBeEmpty();
+  expect(await page.locator('#gps-target').textContent()).not.toBe('');
+  const firstBearing = await page.locator('#gps-degrees').textContent();
+  // Sailing changes the live bearing, so the needle follows the GPS course.
+  await openIsland(page, 'AI');
+  await expect(gps).toBeHidden();
+  await expect(page.locator('#map-viewport')).toHaveAttribute('data-gps-hidden', 'true');
+  // Sail back to open water away from every island: the popup returns
+  // with a fresh live bearing.
+  await page.evaluate(() => document.querySelector('#map-viewport').scrollTo({ left: 0, top: 980 }));
+  await expect(gps).toBeVisible();
+  await expect(page.locator('#gps-degrees')).not.toHaveText(firstBearing);
+});
+
 test('crew links use the supplied banner without obscuring text or destinations', async ({ page }) => {
   await page.goto('/');
   await openIsland(page, 'Web');

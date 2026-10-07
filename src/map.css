@@ -23,7 +23,10 @@ h1,h2{font-family:'Pirata One',Georgia,serif;font-weight:400}
 h1{font-size:68px;line-height:.91;letter-spacing:-1px;margin:0 0 17px}
 .expedition-title>p:last-child{font-size:15px;line-height:1.45;margin:0;color:var(--soft-ink)}
 .cartography{position:absolute;inset:0;width:var(--map-width);height:var(--map-height);pointer-events:none}
-.compass-labels{font:20px 'Pirata One',serif;text-anchor:middle}
+.compass-labels{font:22px 'Pirata One',serif;text-anchor:middle}
+.compass-labels text{fill:#554535}
+.compass-tick{stroke:#554535;stroke-width:2;stroke-linecap:round}
+.compass-needle{transform-box:fill-box;transform-origin:center}
 .sailing-routes{opacity:.65}
 .island{position:absolute;left:var(--x);top:var(--y);width:280px;transform:translateX(-50%);text-align:center;scroll-margin:90px;z-index:2}
 .island-art{position:relative;width:260px;height:260px;margin:0 auto 2px;transform-origin:50% 65%}
@@ -50,7 +53,14 @@ details[open] .menu-chevron{transform:rotate(180deg)}
 .island-menu #wave-toggle{width:100%;min-height:44px;margin-top:8px;border:1px solid #9A704366;background:none;cursor:pointer;font-size:13px;font-weight:700}
 .map-signoff{position:absolute;top:1745px;left:815px;width:250px;text-align:center;color:var(--soft-ink)}
 .map-signoff>span{font-size:25px}.map-signoff p{font-family:'Pirata One',serif;font-size:26px;line-height:1.1;margin:8px 0 16px}.map-signoff small{font-size:11px;line-height:1.4}
-.explore-hint{position:fixed;left:50%;transform:translateX(-50%);bottom:max(18px,env(safe-area-inset-bottom));z-index:10;display:flex;align-items:center;gap:12px;background:var(--parchment);border:1px solid #9A704366;padding:7px 0 7px 15px;box-shadow:2px 3px 0 #9A704326;max-width:calc(100% - 32px)}
+.gps{position:fixed;left:50%;transform:translateX(-50%);bottom:max(16px,env(safe-area-inset-bottom));z-index:9;display:flex;align-items:center;gap:12px;padding:8px 18px 8px 10px;background:var(--parchment);border:1px solid #9A704366;outline:1px solid #9A704333;outline-offset:3px;box-shadow:2px 3px 0 #9A704326;max-width:calc(100% - 32px);pointer-events:none}
+.gps-dial{width:52px;height:52px;flex-shrink:0}
+.gps-readout{text-align:left;line-height:1.25}
+.gps-course{margin:0;font:400 26px/1 'Pirata One',serif;display:flex;align-items:baseline;gap:6px}
+.gps-course small{font:700 11px/1 'Nunito Sans',sans-serif;color:var(--soft-ink)}
+.gps-target{margin:2px 0 0;font-size:14px;font-weight:800}
+.gps-distance{margin:1px 0 0;font-size:12px;color:var(--soft-ink)}
+.explore-hint{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(max(16px,env(safe-area-inset-bottom)) + 84px);z-index:10;display:flex;align-items:center;gap:12px;background:var(--parchment);border:1px solid #9A704366;padding:7px 0 7px 15px;box-shadow:2px 3px 0 #9A704326;max-width:calc(100% - 32px)}
 .explore-hint>span{font-size:27px;color:var(--soft-ink)}
 .explore-hint p{font-size:13px;margin:0;white-space:nowrap;line-height:1.4}.explore-hint button{background:none;border:0;cursor:pointer;min-width:44px;min-height:44px;font-size:23px}
 .skip-reveal{position:fixed;left:max(16px,env(safe-area-inset-left));bottom:max(16px,env(safe-area-inset-bottom));z-index:12;background:var(--parchment);border:1px solid var(--paper-edge);min-height:44px;padding:10px 15px;font-size:13px;cursor:pointer}
