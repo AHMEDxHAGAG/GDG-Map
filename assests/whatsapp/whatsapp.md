@@ -1,0 +1,5 @@
+[GDGoC Web](https://chat.whatsapp.com/H7y5P34gusB1zGMDPeSVPP)
+[GDGoC AI](https://chat.whatsapp.com/EAUuRlMLIhBLGjKG3VscKV)
+[GDGoC Data Science](https://chat.whatsapp.com/HffmHZChgt1A58skqxucLY)
+[GDGoC Software Engineering](https://chat.whatsapp.com/ByOeIpWa93l6bOvDytMjWJ)
+[GDGoC Cybersecurity](https://chat.whatsapp.com/GC6pD2uxHo1Ikoa4Mryspa?s=sw&p=a&mlu=4&ilr=4)

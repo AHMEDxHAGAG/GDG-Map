@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#E8D3A3">
+  <meta name="description" content="Explore five technology islands with GDGoC AASTMT Aswan. Find your track and join its WhatsApp crew.">
+  <title>GDGoC Pirate Expedition — Find your crew</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="preload" href="/fonts/pirata-one-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/map.css">
+  <script defer src="/vendor/gsap.min.js"></script>
+  <script defer src="/vendor/ScrollToPlugin.min.js"></script>
+  <script type="module" src="/map.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#island-navigation">Skip to island navigation</a>
+  <nav class="navigation" aria-label="Island navigation" id="island-navigation">
+    <details id="island-menu">
+      <summary><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 5 6-2 6 2 6-2v16l-6 2-6-2-6 2Z M9 3v16 M15 5v16"/></svg>Find an island<span class="menu-chevron" aria-hidden="true">⌄</span></summary>
+      <div class="island-menu"><p>Choose your waters</p>{{NAVIGATION}}<button id="wave-toggle" type="button" hidden>Pause waves</button></div>
+    </details>
+  </nav>
+  <main class="map-viewport" id="map-viewport" tabindex="0" aria-label="Treasure map" aria-describedby="map-instructions">
+    <div class="map" id="map" style="--map-width: {{MAP_WIDTH}}px; --map-height: {{MAP_HEIGHT}}px">
+      <div class="map-border" aria-hidden="true"></div>
+      <header class="expedition-title" style="--title-x: {{TITLE_X}}px">
+        <p class="organization"><span class="crew-colors" aria-hidden="true"><i></i><i></i><i></i><i></i></span>GDGoC · AASTMT Aswan</p>
+        <h1>Pirate<br>Expedition</h1>
+        <p>Five islands. A world to build.<br>Where will you drop anchor?</p>
+      </header>
+      <svg class="cartography" viewBox="0 0 {{MAP_WIDTH}} {{MAP_HEIGHT}}" aria-hidden="true">
+        <defs>
+          <pattern id="waves" width="170" height="165" patternUnits="userSpaceOnUse"><g fill="none" stroke="#456E75" stroke-width="1.3" opacity=".32"><path class="wave-mark" d="M32 44 C39 35 46 35 53 44 S67 53 74 44 S88 35 95 44"/><path class="wave-mark" d="M110 123 C116 130 122 130 128 123 S140 116 146 123"/></g></pattern>
+          <mask id="open-sea"><rect width="{{MAP_WIDTH}}" height="{{MAP_HEIGHT}}" fill="white"/><rect x="{{TITLE_MASK_X}}" y="70" width="360" height="245" fill="black"/>{{SEA_MASK}}<rect x="805" y="1735" width="270" height="170" fill="black"/></mask>
+          <mask id="clear-labels"><rect width="{{MAP_WIDTH}}" height="{{MAP_HEIGHT}}" fill="white"/>{{LABEL_MASK}}</mask>
+        </defs>
+        <rect x="45" y="45" width="1790" height="1850" fill="url(#waves)" mask="url(#open-sea)"/>
+        <g class="sailing-routes" fill="none" stroke="#554535" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="2 11" mask="url(#clear-labels)">
+          <path id="route-ai" d="M940 405 L1120 820 Q1127 838 1145 837 L1600 800"/>
+          <path id="route-cybersecurity" d="M1600 800 L1250 1105 Q1230 1122 1236 1145 L1350 1410"/>
+          <path id="route-software-engineering" d="M1350 1410 L960 1240 Q940 1230 920 1240 L530 1410"/>
+          <path id="route-data-science" d="M530 1410 L645 1145 Q650 1122 630 1105 L280 800"/>
+          <path id="route-web" d="M280 800 L735 837 Q753 838 760 820 L940 405"/>
+        </g>
+        <g class="compass" transform="translate(940 1000)" stroke="#554535" fill="none">
+          <circle r="64" stroke-width="1"/><circle r="56" stroke-width=".6"/>
+          <path d="M0-85 13-13 85 0 13 13 0 85-13 13-85 0-13-13Z" fill="#C9A86A" stroke-width="1.5"/>
+          <path d="M0-85V0L13-13Z M85 0H0L13 13Z M0 85V0L-13 13Z M-85 0H0L-13-13Z" fill="#554535"/>
+          <path d="m-44-44 44 22 44-22-22 44 22 44-44-22-44 22 22-44Z" stroke-width="1"/>
+          <circle r="7" fill="#E8D3A3"/>
+          <g class="compass-labels" stroke="none" fill="#554535"><text y="-96">N</text><text x="100" y="5">E</text><text y="112">S</text><text x="-101" y="5">W</text></g>
+        </g>
+        <g transform="translate(180 1200) rotate(-12)" fill="none" stroke="#554535" stroke-width="2" opacity=".7">
+          <path d="M-45 17q40 12 90 0l-15 23h-50Z M0-72V25 M4-65q44 19 27 70H4Z M-6-54q-10 22-34 54h34Z M-52 47q9 7 18 0t18 0t18 0t18 0t18 0"/>
+        </g>
+        <g transform="translate(1640 1330) rotate(10)" stroke="#A44732" stroke-width="6" stroke-linecap="round" opacity=".65"><path d="m-13-13 26 26m0-26-26 26"/></g>
+      </svg>
+      <div class="islands" id="islands">{{ISLANDS}}</div>
+      <footer class="map-signoff"><span aria-hidden="true">⚓</span><p>No set course.<br>Just a crew worth finding.</p><small>Google Developer Groups on Campus<br>AASTMT Aswan</small></footer>
+    </div>
+  </main>
+  <p id="map-instructions" class="sr-only">Scroll in any direction to explore the map, or use Find an island to jump to a track. Each Join the crew link opens WhatsApp in a new tab.</p>
+  <div class="explore-hint" id="explore-hint" hidden><span aria-hidden="true">✥</span><p>Swipe to explore.<br><strong>Find your crew.</strong></p><button id="dismiss-hint" aria-label="Dismiss exploration hint">×</button></div>
+  <button class="skip-reveal" id="skip-reveal" hidden>Skip reveal</button>
+  <p class="sr-only" role="status" id="map-status"></p>
+</body>
+</html>

@@ -1,0 +1,367 @@
+{
+  "project": {
+    "name": "GDGoC AASTMT Aswan — Orientation Adventure",
+    "experience": "Pirate Treasure Map",
+    "platform": "mobile-first web experience",
+    "organization": "Google Developer Groups on Campus — AASTMT Aswan"
+  },
+
+  "creative_direction": {
+    "core_concept": "A lost pirate map leading visitors through five technology islands, where every GDGoC track is represented as a unique explorable island.",
+    "mood": [
+      "adventurous",
+      "curious",
+      "playful",
+      "mysterious",
+      "welcoming",
+      "handcrafted"
+    ],
+    "keywords": [
+      "pirate",
+      "treasure map",
+      "exploration",
+      "islands",
+      "navigation",
+      "discovery",
+      "old parchment",
+      "cartography",
+      "GDGoC"
+    ],
+    "avoid": [
+      "generic corporate landing page",
+      "cyberpunk",
+      "sci-fi UI",
+      "gaming HUD",
+      "realistic 3D game graphics",
+      "glassmorphism-heavy UI",
+      "dashboard design",
+      "modern map application look"
+    ]
+  },
+
+  "art_style": {
+    "primary_style": "hand-drawn antique pirate cartography",
+    "rendering": "ink illustration with restrained watercolor",
+    "line_quality": "slightly imperfect hand-drawn engraved ink",
+    "perspective": "slightly elevated top-down cartographic view",
+    "detail_level": "medium detail with strong silhouettes for mobile readability",
+    "texture": "aged parchment, faded ink and subtle paper imperfections",
+    "shading": "minimal watercolor washes and light cross-hatching",
+    "edges": "organic, imperfect and hand-rendered",
+    "visual_age": "old explorer map, but polished enough for a modern event identity"
+  },
+
+  "brand_balance": {
+    "rule": "Pirate theme dominates the environment while Google/GDGoC colors appear as controlled accents.",
+    "google_colors_usage": "Never recolor the entire pirate map using Google colors. Use them only for interaction states, flags, small symbols, route markers and selected UI details.",
+    "logo_usage": "Use official logo assets separately. Do not ask image generators to reproduce GDGoC or Google logos.",
+    "branding_feel": "GDGoC should feel like the explorers or crew who discovered the map, not like corporate branding pasted over pirate artwork."
+  },
+
+  "palette": {
+    "parchment_light": "#E8D3A3",
+    "parchment_base": "#C9A86A",
+    "parchment_dark": "#9A7043",
+
+    "ink_primary": "#24201A",
+    "ink_secondary": "#554535",
+
+    "ocean_base": "#72969A",
+    "ocean_dark": "#456E75",
+    "ocean_light": "#A4BCB5",
+
+    "vegetation": "#687356",
+    "rock": "#77624B",
+    "wood": "#684832",
+
+    "treasure_red": "#A44732",
+    "gold": "#B78A43",
+
+    "google_blue": "#4285F4",
+    "google_red": "#EA4335",
+    "google_yellow": "#FBBC04",
+    "google_green": "#34A853"
+  },
+
+  "color_rules": {
+    "parchment_percentage": "50-65%",
+    "ink_and_neutral_percentage": "20-30%",
+    "environmental_color_percentage": "10-20%",
+    "google_accent_percentage": "under 8%",
+    "saturation": "mostly muted",
+    "google_colors": "may remain relatively vivid when intentionally used as brand accents"
+  },
+
+  "map_environment": {
+    "ocean": {
+      "style": "illustrated map water rather than realistic sea",
+      "details": [
+        "small curved wave marks",
+        "occasional foam",
+        "hand-drawn current lines"
+      ],
+      "rule": "The ocean must remain visually quieter than the islands."
+    },
+
+    "islands": {
+      "base": "warm sand and parchment-like land",
+      "coastlines": "dark irregular ink outlines",
+      "terrain": [
+        "mountains",
+        "rocks",
+        "palm trees",
+        "small beaches",
+        "paths",
+        "occasional ruins",
+        "wooden structures"
+      ],
+      "rule": "Every island should look related but have its own silhouette and dominant landmark."
+    },
+
+    "routes": {
+      "style": "dark hand-drawn dotted pirate route",
+      "width": "thin but visible at mobile scale",
+      "behavior": "may animate as if being drawn",
+      "avoid": "modern navigation lines or glowing GPS trails"
+    },
+
+    "decorations": [
+      "compass rose",
+      "pirate ship",
+      "anchor",
+      "whale tail",
+      "small sea monster",
+      "treasure chest",
+      "red X",
+      "clouds",
+      "rocks",
+      "tiny islands",
+      "wave symbols",
+      "GDGoC expedition flags"
+    ]
+  },
+
+  "island_consistency": {
+    "all_tracks_share": [
+      "same camera angle",
+      "same ink style",
+      "same parchment terrain treatment",
+      "same watercolor density",
+      "same approximate visual detail",
+      "same lighting",
+      "same outline weight"
+    ],
+
+    "islands_differ_by": [
+      "silhouette",
+      "primary landmark",
+      "technology metaphor",
+      "small accent color",
+      "terrain arrangement"
+    ],
+
+    "forbidden_differences": [
+      "one island being realistic while another is illustrated",
+      "different camera angles",
+      "dramatically different lighting",
+      "one island becoming cyberpunk",
+      "one island becoming flat vector art"
+    ]
+  },
+
+  "track_identity": {
+    "web": {
+      "theme": "Connected Pirate Port",
+      "primary_metaphor": "connections and communication",
+      "accent": "#4285F4"
+    },
+
+    "ai": {
+      "theme": "Thinking / Mechanical Oracle Island",
+      "primary_metaphor": "intelligence and neural connections",
+      "accent": "#755F8F"
+    },
+
+    "data_science": {
+      "theme": "Explorer Observatory Island",
+      "primary_metaphor": "measurement, patterns and discovery",
+      "accent": "#687356"
+    },
+
+    "software_engineering": {
+      "theme": "Builders Fortress",
+      "primary_metaphor": "architecture, modularity and construction",
+      "accent": "#B27A3A"
+    },
+
+    "cybersecurity": {
+      "theme": "Fortified Forbidden Island",
+      "primary_metaphor": "defense and protection",
+      "accent": "#A44732"
+    }
+  },
+
+  "typography": {
+    "rule": "Typography belongs to the website UI, not baked into generated island images.",
+
+    "display_style": {
+      "use": "large pirate headings and short thematic statements",
+      "character": "handwritten or explorer-journal inspired",
+      "limit": "only decorative headings, never long paragraphs"
+    },
+
+    "body_style": {
+      "use": "descriptions, buttons and practical information",
+      "character": "clean and highly readable",
+      "rule": "must remain easy to read on 360px mobile screens"
+    },
+
+    "map_labels": {
+      "character": "handwritten map notation",
+      "treatment": "slightly rotated or imperfect where appropriate",
+      "rule": "implemented with real HTML/SVG text rather than generated into artwork"
+    }
+  },
+
+  "ui_style": {
+    "philosophy": "The website UI should feel physically attached to the treasure map.",
+
+    "surfaces": [
+      "parchment cards",
+      "scrolls",
+      "map labels",
+      "wooden or ink-styled controls"
+    ],
+
+    "avoid": [
+      "standard SaaS cards",
+      "glass panels",
+      "large white rectangles",
+      "generic rounded Tailwind components",
+      "dashboard navigation bars",
+      "floating modern pills everywhere"
+    ],
+
+    "border_radius": {
+      "map_elements": "irregular or very subtle",
+      "functional_controls": "moderate",
+      "rule": "do not make every element a rounded rectangle"
+    },
+
+    "shadow_style": "soft paper/object separation, not dramatic floating UI shadows"
+  },
+
+  "interaction_visuals": {
+    "default_island": {
+      "scale": 1,
+      "saturation": "normal",
+      "shadow": "minimal"
+    },
+
+    "selected_island": {
+      "scale": 1.05,
+      "effect": "slight elevation and clearer ink contrast",
+      "accent": "track-specific color"
+    },
+
+    "visited_island": {
+      "effect": "small explorer stamp, marker or completed route indicator"
+    },
+
+    "locked_island": {
+      "effect": "optional light fog overlay",
+      "rule": "avoid grey disabled UI treatment"
+    },
+
+    "treasure_destination": {
+      "marker": "hand-painted red X",
+      "animation": "very subtle pulse"
+    }
+  },
+
+  "motion_language": {
+    "character": "physical, slow and playful",
+
+    "preferred": [
+      "paper unfolding",
+      "ship bobbing",
+      "flag waving",
+      "route drawing",
+      "compass needle moving",
+      "fog drifting",
+      "island gently lifting when selected",
+      "treasure chest opening"
+    ],
+
+    "avoid": [
+      "rapid bouncing",
+      "neon glow animations",
+      "large parallax effects",
+      "constant floating of every component",
+      "excessive spring animations",
+      "video-game combat effects"
+    ]
+  },
+
+  "mobile_requirements": {
+    "primary_view": "portrait",
+    "minimum_target": "360px wide",
+    "preferred_reference": "390x844",
+    "large_mobile_reference": "430x932",
+
+    "rules": [
+      "islands must remain recognizable when displayed around 100-170px wide",
+      "interactive targets should be at least 44px",
+      "major landmarks must remain visible at mobile scale",
+      "small decorative details must never be required for understanding",
+      "text must never be baked into island images",
+      "map should remain visually understandable without zooming"
+    ]
+  },
+
+  "asset_generation_rules": {
+    "island_format": "transparent PNG or WebP",
+    "source_resolution": "1536x1536 minimum",
+    "working_aspect_ratio": "1:1",
+
+    "asset_background": "transparent",
+
+    "never_generate": [
+      "track name",
+      "GDGoC logo",
+      "Google logo",
+      "QR code",
+      "paragraph text",
+      "buttons",
+      "website UI"
+    ],
+
+    "reason": "Brand assets and text should remain real frontend elements for consistency, accessibility and responsiveness."
+  },
+
+  "global_negative_prompt": [
+    "photorealism",
+    "realistic photography",
+    "3D game render",
+    "Pixar style",
+    "anime",
+    "flat vector",
+    "cyberpunk",
+    "sci-fi",
+    "neon",
+    "glowing HUD",
+    "modern city",
+    "modern dashboard",
+    "modern computer interface",
+    "glassmorphism",
+    "plastic",
+    "metallic futuristic technology",
+    "text",
+    "letters",
+    "logos",
+    "watermarks",
+    "QR codes",
+    "white studio background",
+    "rectangular parchment background behind isolated assets"
+  ]
+}
