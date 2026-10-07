@@ -1,5 +1,7 @@
 # GDGoC Pirate Expedition
 
+Vercel
+
 An English-only, mobile-first treasure map for GDGoC AASTMT Aswan. Five illustrated technology islands link directly to their WhatsApp crews. Static HTML, CSS, and JavaScript; no backend or runtime third-party requests.
 
 ## Run
