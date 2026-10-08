@@ -33,8 +33,22 @@ test('map loads with real artwork and no runtime errors', async ({ page }, testI
   await page.goto('/');
   await expect(page.locator('#skip-reveal')).toBeHidden();
   await page.evaluate(() => document.fonts.ready);
+  // Start view is the compass: on mobile viewports, distant islands ship
+  // placeholders (the 400px preload margin may already have pulled Web).
+  // Desktop's 1280px frame sees most islands, so it loads them eagerly.
+  const isMobileViewport = testInfo.project.use.viewport.width < 600;
+  if (isMobileViewport) {
+    const placeholderCount = await page.locator('.island-art img[src^="data:image"]').count();
+    expect(placeholderCount).toBeGreaterThanOrEqual(3);
+    const shippedCount = await page.evaluate(() => performance.getEntriesByType('resource').filter(entry => entry.name.includes('/images/')).length);
+    expect(shippedCount).toBeLessThanOrEqual(2);
+  }
+  // Navigating loads just that island's artwork plus its crew banner.
+  await openIsland(page, 'Web');
   await expect(page.locator('#web img')).toHaveJSProperty('complete', true);
   expect(await page.locator('#web img').evaluate(image => image.naturalWidth)).toBeGreaterThan(0);
+  expect(await page.locator('#web img').evaluate(image => image.currentSrc)).toContain('.webp');
+  await expect(page.locator('#web .crew-link')).toHaveClass(/has-banner/);
   await expect(page.getByRole('heading', { name: 'Pirate Expedition' })).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(testInfo.project.use.viewport.width);
   await page.screenshot({ path: `test-results/${testInfo.project.name}-initial.png` });

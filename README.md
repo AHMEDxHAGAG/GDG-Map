@@ -21,7 +21,11 @@ Open `http://127.0.0.1:4173`. Restart `npm run dev` after source changes, or run
 - `src/map.js`: native scrolling, first-visit hint, GSAP reveal, ScrollToPlugin travel, gently rolling SVG waves, mobile compass-first start view, live per-track GPS guidance that hides on arrival, interruption handling, and reduced-motion preferences via `gsap.matchMedia()`.
 - `scripts/build.mjs`: renders actual island HTML and links, then copies local fonts, artwork, and GSAP into `dist/`.
 
-The original files in `assests/` are never modified. Every Join the crew link uses optimized copies of `assests/shared-visual/Antique Pirate Treasure Map Banner.png` behind real HTML text. To regenerate responsive WebP copies, install ImageMagick with the `magick` command and run `npm run optimize`. Both font families are self-hosted with their SIL Open Font licenses in `public/fonts/`.
+The original files in `assests/` are never modified. Every Join the crew link uses optimized copies of `assests/shared-visual/Antique Pirate Treasure Map Banner.png` behind real HTML text. To regenerate responsive WebP copies, install ImageMagick with the `magick` command and run `npm run optimize`. Islands ship 320w (1x phones) + 520w (2x DPR exactly) copies; the banner keeps 320w + 640w for crisp text-like buttons. Both font families are self-hosted with their SIL Open Font licenses in `public/fonts/`.
+
+## Performance
+
+First paint ships zero island bytes: every island renders a 1px placeholder (width/height reserve layout, CLS-safe) and an `IntersectionObserver` rooted on `#map-viewport` swaps in `data-src`/`data-srcset` 400px before the island nears. Crew banner backgrounds only apply via `.has-banner` when the island is near, and navigating via Find an island preloads just that island. Images and fonts carry immutable year-long cache headers on Vercel; repeat visits load from cache. Total optimized images: ~486 KiB (`public/images/`), `dist/` ~716 KiB.
 
 ## Interaction and accessibility
 
@@ -61,6 +65,6 @@ Vercel automatically assigned the very first deployment a production alias when 
 
 ## Verification
 
-All 7 configuration/build checks and 68 Chromium browser tests passed (across 360 × 800, 390 × 844, 430 × 932, and desktop 1280 × 900), including the compass-first start view and GPS popup that hides on arrival. Four mobile-only checks are intentionally skipped in the desktop project, and the full-map overview is captured once on desktop rather than repeated on mobile. The three mobile widths passed native diagonal scrolling, accidental-tap prevention, and touch cancellation using browser-generated touch input. Banner rendering, wave motion, pause/resume, and disabling waves for reduced motion are also covered.
+All 8 configuration/build checks and 68 Chromium browser tests passed (across 360 × 800, 390 × 844, 430 × 932, and desktop 1280 × 900), including the compass-first start view and GPS popup that hides on arrival. Four mobile-only checks are intentionally skipped in the desktop project, and the full-map overview is captured once on desktop rather than repeated on mobile. The three mobile widths passed native diagonal scrolling, accidental-tap prevention, and touch cancellation using browser-generated touch input. Banner rendering, wave motion, pause/resume, and disabling waves for reduced motion are also covered.
 
 The updated map passes cold-load budgets of 1.1 MB transferred, 5s DOM ready / largest contentful paint, and cumulative layout shift below 0.1, with cache disabled, 100ms latency, and 400 KB/s download throughput. These are local Chromium emulation results, not production performance guarantees or physical-device Safari testing. Screenshots (including `star-map-overview.png`) and per-width loading metrics are in `test-results/` after a test run.

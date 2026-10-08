@@ -78,7 +78,7 @@ media.add({ all: '(min-width: 0px)', reduce: '(prefers-reduced-motion: reduce)' 
     routeDrawing?.kill();
     gsap.killTweensOf('.island-art');
     gsap.set('.island-art', { clearProps: 'transform' });
-    gsap.ticker.remove(updateGuidance);
+    if (scheduleGuidance.throttled) gsap.ticker.remove(scheduleGuidance.throttled);
     guidanceTicking = false;
   };
 });
@@ -156,16 +156,26 @@ function updateGuidance() {
   if (!guidanceReady) return;
   const track = guidanceTrack();
   const arrived = track === null;
-  gps.hidden = arrived;
-  viewport.dataset.gpsHidden = String(arrived);
+  if (gps.hidden !== arrived) gps.hidden = arrived;
+  const hiddenFlag = String(arrived);
+  if (viewport.dataset.gpsHidden !== hiddenFlag) viewport.dataset.gpsHidden = hiddenFlag;
   if (arrived) return;
   const from = viewportCenter();
   const { degrees, word } = bearingTo(track, from);
-  gpsBearing.textContent = word;
-  gpsDegrees.textContent = `${Math.round(degrees)}°`;
-  gpsTarget.textContent = track.name;
-  gpsLeagues.textContent = toLeagues(distanceTo(track, from));
-  gps.style.setProperty('--accent', track.accent);
+  const rounded = Math.round(degrees);
+  // Skip DOM writes and needle tweens when the reading did not change.
+  if (gpsTarget.textContent !== track.name) {
+    gpsTarget.textContent = track.name;
+    gps.style.setProperty('--accent', track.accent);
+  }
+  if (gpsBearing.textContent !== word) gpsBearing.textContent = word;
+  const degreesText = `${rounded}°`;
+  if (gpsDegrees.textContent !== degreesText) gpsDegrees.textContent = degreesText;
+  const leaguesText = String(toLeagues(distanceTo(track, from)));
+  if (gpsLeagues.textContent !== leaguesText) gpsLeagues.textContent = leaguesText;
+  if (updateGuidance.lastDegrees === rounded && updateGuidance.lastTarget === track.id) return;
+  updateGuidance.lastDegrees = rounded;
+  updateGuidance.lastTarget = track.id;
   if (reducedMotion) {
     gpsNeedle.setAttribute('transform', `rotate(${degrees})`);
     compassNeedle.setAttribute('transform', `rotate(${degrees})`);
@@ -178,7 +188,18 @@ function updateGuidance() {
 function scheduleGuidance() {
   if (!guidanceReady || guidanceTicking) return;
   guidanceTicking = true;
-  gsap.ticker.add(updateGuidance);
+  // rAF-throttled: scroll fires at 60-120Hz but the readout only needs ~10.
+  let queued = false;
+  const throttled = () => {
+    if (queued) return;
+    queued = true;
+    requestAnimationFrame(() => {
+      queued = false;
+      updateGuidance();
+    });
+  };
+  scheduleGuidance.throttled = throttled;
+  gsap.ticker.add(throttled);
 }
 
 function emphasizeIsland(track) {
@@ -316,6 +337,57 @@ document.fonts?.ready.then(updateGuidance);
 guidanceReady = true;
 scheduleGuidance();
 updateGuidance();
+
+// Native loading="lazy" on <img> does not fire inside every nested
+// scroller, so swap data-src/data-srcset in with an IntersectionObserver
+// rooted on the map viewport: near islands start loading 400px early, and
+// crew banners only gain their background once the island is about near.
+// Images keep loading="lazy" + decoding="async" so no-JS visitors still
+// get native deferral via the <noscript> fallback and srcset-less
+// placeholder never prefetches.
+if ('IntersectionObserver' in window) {
+  const eagerLoader = new IntersectionObserver(entries => {
+    for (const entry of entries) {
+      if (!entry.isIntersecting) continue;
+      const image = entry.target;
+      eagerLoader.unobserve(image);
+      if (image.dataset.src) {
+        if (image.dataset.srcset) image.srcset = image.dataset.srcset;
+        image.src = image.dataset.src;
+        delete image.dataset.src;
+        delete image.dataset.srcset;
+      }
+      image.closest('.island')?.querySelector('.crew-link')?.classList.add('has-banner');
+    }
+  }, { root: viewport, rootMargin: '400px' });
+  for (const image of document.querySelectorAll('.island-art img[data-src]')) eagerLoader.observe(image);
+  // Navigating straight to an island loads its artwork immediately.
+  const preloadIsland = track => {
+    const image = document.querySelector(`#${track.id} .island-art img[data-src]`);
+    if (image) {
+      if (image.dataset.srcset) image.srcset = image.dataset.srcset;
+      image.src = image.dataset.src;
+      delete image.dataset.src;
+      delete image.dataset.srcset;
+      eagerLoader.unobserve(image);
+    }
+    document.querySelector(`#${track.id} .crew-link`)?.classList.add('has-banner');
+  };
+  document.querySelectorAll('.island-menu a').forEach(link => link.addEventListener('click', () => {
+    const track = tracks.find(track => `#${track.id}` === link.hash);
+    if (track) preloadIsland(track);
+  }, { passive: true }));
+  window.addEventListener('hashchange', () => {
+    const track = tracks.find(track => `#${track.id}` === location.hash);
+    if (track) preloadIsland(track);
+  });
+} else {
+  for (const image of document.querySelectorAll('.island-art img[data-src]')) {
+    if (image.dataset.srcset) image.srcset = image.dataset.srcset;
+    image.src = image.dataset.src;
+  }
+  for (const link of document.querySelectorAll('.crew-link')) link.classList.add('has-banner');
+}
 
 // Observe intent; never prevent defaults or translate a native touch gesture.
 for (const type of ['wheel', 'touchstart', 'pointerdown']) {

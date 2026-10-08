@@ -58,13 +58,30 @@ test('built HTML contains real, accessible crew links and jump destinations', as
 test('responsive WebP copies stay small and original images are preserved', async () => {
   for (const track of tracks) {
     assert.ok((await stat(`assests/islands/${track.artwork}.png`)).size > 1000000);
-    for (const size of [320, 640]) {
+    // 320w covers 1x phones (260px art); 520w covers 2x DPR exactly.
+    for (const size of [320, 520]) {
       const path = `dist/images/${track.artwork}-${size}.webp`;
       const image = await readFile(path);
       assert.equal(image.toString('ascii', 8, 12), 'WEBP');
-      assert.ok(image.length < 180000, path);
+      assert.ok(image.length < 100000, path);
     }
   }
+  // No stale 640w copies: they overshot 2x DPR by 23% at ~30% extra bytes.
+  for (const track of tracks) {
+    await assert.rejects(stat(`dist/images/${track.artwork}-640.webp`));
+  }
+});
+
+test('first paint ships no island bytes: placeholders defer to data-src', async () => {
+  const html = await readFile('dist/index.html', 'utf8');
+  assert.ok(!html.includes('fetchpriority="high"'));
+  assert.equal((html.match(/data-src="\/images\//g) || []).length, 5);
+  assert.equal((html.match(/loading="lazy"/g) || []).length, 5);
+  // Placeholders keep layout; real bytes only arrive via data-src/srcset.
+  // Strip <noscript> fallbacks first: they intentionally carry real src.
+  const withoutNoscript = html.replaceAll(/<noscript>.*?<\/noscript>/gs, '');
+  assert.ok(!withoutNoscript.match(/<img src="\/images\//));
+  assert.ok(html.includes('<noscript><img src="/images/'));
 });
 
 test('native scrolling, safe areas, and reduced motion are part of the foundation', async () => {

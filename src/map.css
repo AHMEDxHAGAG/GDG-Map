@@ -10,7 +10,7 @@ button:focus-visible,a:focus-visible,summary:focus-visible,.map-viewport:focus-v
 .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 .map-viewport{width:100%;height:100vh;height:100dvh;overflow:auto;touch-action:pan-x pan-y;overscroll-behavior:contain;scroll-behavior:auto;position:relative}
 .map{position:relative;width:var(--map-width);height:var(--map-height);min-width:100%;min-height:100%;isolation:isolate;background-color:var(--parchment);background-image:radial-gradient(ellipse at 28% 27%,#72969A47 0,transparent 23%),radial-gradient(ellipse at 75% 32%,#72969A38 0,transparent 22%),radial-gradient(ellipse at 52% 59%,#A4BCB56e 0,transparent 27%),radial-gradient(ellipse at 25% 81%,#72969A42 0,transparent 23%),radial-gradient(ellipse at 79% 84%,#72969A45 0,transparent 24%),radial-gradient(ellipse at center,transparent 40%,#9A704328 100%)}
-.map:after{content:'';position:absolute;inset:0;z-index:5;pointer-events:none;background:url('/paper-grain.svg');opacity:.16;mix-blend-mode:multiply}
+.map:after{content:'';position:absolute;inset:0;z-index:5;pointer-events:none;background:url('/paper-grain.svg');opacity:.12}
 .map-border{position:absolute;inset:30px;border:1px solid #9A70435c;outline:1px solid #9A704336;outline-offset:7px;pointer-events:none}
 .map-border:before,.map-border:after{content:'✥';position:absolute;font-size:32px;color:var(--paper-edge)}
 .map-border:before{left:-15px;top:-24px}.map-border:after{right:-15px;bottom:-24px}
@@ -28,13 +28,15 @@ h1{font-size:68px;line-height:.91;letter-spacing:-1px;margin:0 0 17px}
 .compass-tick{stroke:#554535;stroke-width:2;stroke-linecap:round}
 .compass-needle{transform-box:fill-box;transform-origin:center}
 .sailing-routes{opacity:.65}
-.island{position:absolute;left:var(--x);top:var(--y);width:280px;transform:translateX(-50%);text-align:center;scroll-margin:90px;z-index:2}
-.island-art{position:relative;width:260px;height:260px;margin:0 auto 2px;transform-origin:50% 65%}
+.island{position:absolute;left:var(--x);top:var(--y);width:280px;transform:translateX(-50%);text-align:center;scroll-margin:90px;z-index:2;content-visibility:auto;contain-intrinsic-size:auto 470px}
+.island-art{position:relative;width:260px;height:260px;margin:0 auto 2px;transform-origin:50% 65%;content-visibility:auto;contain-intrinsic-size:auto 260px}
 .island img{display:block;width:100%;height:100%;object-fit:contain;user-select:none;-webkit-user-drag:none}
 .island h2{font-size:34px;line-height:1.05;margin:0 0 8px;scroll-margin:110px}
 .island h2:focus{outline:2px dashed var(--soft-ink);outline-offset:7px}
 .island p{font-size:15px;line-height:1.45;margin:0 auto 12px;max-width:252px;color:var(--soft-ink)}
-.crew-link{display:inline-flex;align-items:center;justify-content:center;width:246px;min-height:82px;padding:20px 42px;text-decoration:none;color:var(--ink);font-size:16px;font-weight:800;background:url('/images/crew-banner-640.webp') center/contain no-repeat;background-image:image-set(url('/images/crew-banner-320.webp') 1x,url('/images/crew-banner-640.webp') 2x)}
+.crew-link{display:inline-flex;align-items:center;justify-content:center;width:246px;min-height:82px;padding:20px 42px;text-decoration:none;color:var(--ink);font-size:16px;font-weight:800}
+.crew-link.has-banner{background:url('/images/crew-banner-320.webp') center/contain no-repeat}
+@media(min-resolution:2dppx){.crew-link.has-banner{background-image:url('/images/crew-banner-640.webp')}}
 .crew-link:hover{filter:brightness(1.06)}
 .island.is-selected h2{text-decoration:underline;text-decoration-thickness:2px;text-decoration-color:var(--accent);text-underline-offset:7px}
 .navigation{position:fixed;right:max(16px,env(safe-area-inset-right));top:max(16px,env(safe-area-inset-top));z-index:20;width:190px}
