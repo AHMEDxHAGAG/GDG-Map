@@ -68,7 +68,7 @@ test('controls have at least 44px targets and keyboard navigation works', async 
   await summary.focus();
   await page.keyboard.press('Enter');
   await expect(page.locator('#island-menu')).toHaveAttribute('open', '');
-  for (const element of await page.locator('summary, .island-menu a, .crew-link, #dismiss-hint, #wave-toggle, .edge-arrow').all()) {
+  for (const element of await page.locator('summary, .island-menu a, .crew-link, #dismiss-hint, .edge-arrow').all()) {
     const box = await element.boundingBox();
     if (box) expect(box.height).toBeGreaterThanOrEqual(44);
   }
@@ -99,34 +99,23 @@ test('reduced motion uses instant navigation and no decorative tweens', async ({
   await openIsland(page, 'Data Science');
   expect(await page.evaluate(() => window.gsap.getTweensOf([...document.querySelectorAll('.island-art'), document.querySelector('#map')]).length)).toBe(0);
   await expect(page.locator('#route-reveal')).toHaveCount(0);
-  await expect(page.locator('#wave-toggle')).toBeHidden();
+  await expect(page.locator('#wave-toggle')).toHaveCount(0);
   expect(await page.evaluate(() => window.gsap.getTweensOf('.wave-mark').length)).toBe(0);
 });
 
-test('wave marks move on every device and can be paused', async ({ page }, testInfo) => {
+test('wave marks are static artwork with no background ticker', async ({ page }) => {
   await page.goto('/');
-  const isMobile = !!testInfo.project.use.hasTouch;
-  // Desktop morphs the path shape; touch swells opacity instead
-  // (compositor-only, no main-thread `d` morph under pinch-zoom).
-  const wave = page.locator('.wave-mark').first();
-  const readWave = () => wave.evaluate((element, key) => key === 'opacity'
-    ? getComputedStyle(element).opacity
-    : element.getAttribute('d'), isMobile ? 'opacity' : 'd');
-  const initial = await readWave();
-  await expect.poll(readWave).not.toBe(initial);
-  await page.locator('summary').click();
-  await page.getByRole('button', { name: 'Pause waves', exact: true }).click();
-  const paused = await readWave();
-  await page.waitForTimeout(150);
-  expect(await readWave()).toBe(paused);
-  await page.getByRole('button', { name: 'Resume waves', exact: true }).click();
-  await expect.poll(readWave).not.toBe(paused);
-  await page.emulateMedia({ reducedMotion: 'reduce' });
-  await expect(page.locator('#wave-toggle')).toBeHidden();
+  await page.evaluate(() => document.fonts.ready);
+  // No wave tweens on any device: the marks render once and never animate,
+  // so nothing runs on the main thread while exploring.
   expect(await page.evaluate(() => window.gsap.getTweensOf('.wave-mark').length)).toBe(0);
-  const still = await readWave();
-  await page.waitForTimeout(150);
-  expect(await readWave()).toBe(still);
+  await expect(page.locator('#wave-toggle')).toHaveCount(0);
+  const wave = page.locator('.wave-mark').first();
+  const shape = await wave.getAttribute('d');
+  const tone = await wave.evaluate(element => getComputedStyle(element).opacity);
+  await page.waitForTimeout(400);
+  expect(await wave.getAttribute('d')).toBe(shape);
+  expect(await wave.evaluate(element => getComputedStyle(element).opacity)).toBe(tone);
 });
 
 test('mobile starts on the compass with edge arrows that hide on arrival', async ({ page }, testInfo) => {

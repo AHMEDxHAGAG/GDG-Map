@@ -50,7 +50,6 @@ details[open] .menu-chevron{transform:rotate(180deg)}
 .island-menu a:last-child{border-bottom:0}
 .island-menu a:before{content:'';width:7px;height:7px;flex-shrink:0;background:var(--accent);clip-path:polygon(0 0,100% 0,75% 50%,100% 100%,0 100%)}
 .island-menu a:hover{text-decoration:underline}
-.island-menu #wave-toggle{width:100%;min-height:44px;margin-top:8px;border:1px solid #9A704366;background:none;cursor:pointer;font-size:13px;font-weight:700}
 .map-signoff{position:absolute;top:1745px;left:815px;width:250px;text-align:center;color:var(--soft-ink)}
 .map-signoff>span{font-size:25px}.map-signoff p{font-family:'Pirata One',serif;font-size:26px;line-height:1.1;margin:8px 0 16px}.map-signoff small{font-size:11px;line-height:1.4}
 .edge-arrows{position:fixed;inset:0;z-index:9;pointer-events:none;contain:layout style}

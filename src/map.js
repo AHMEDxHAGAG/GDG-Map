@@ -9,13 +9,10 @@ const hint = document.querySelector('#explore-hint');
 const status = document.querySelector('#map-status');
 const map = document.querySelector('#map');
 const skipReveal = document.querySelector('#skip-reveal');
-const waveToggle = document.querySelector('#wave-toggle');
-// Touch devices skip decorative tweens entirely (waves + reveal): the
-// scrolling itself is the motion, and killing the ticker is the biggest
+// Touch devices skip decorative tweens entirely (reveal + arrival pop):
+// the scrolling itself is the motion, and killing the ticker is the biggest
 // single perf win on mobile GPUs.
 const isCoarsePointer = matchMedia('(pointer: coarse)').matches;
-let waveAnimations = [];
-let wavesPaused = false;
 const arrowLayer = document.querySelector('#edge-arrows');
 let reducedMotion = false;
 let travel;
@@ -47,27 +44,8 @@ const media = gsap.matchMedia();
 media.add({ all: '(min-width: 0px)', reduce: '(prefers-reduced-motion: reduce)' }, context => {
   reducedMotion = context.conditions.reduce;
   viewport.dataset.reducedMotion = String(reducedMotion);
-  waveToggle.hidden = reducedMotion;
-  // Waves stay cheap everywhere: desktop morphs the path shape, touch
-  // devices get a compositor-only opacity swell (no `d` morph — it runs on
-  // the main thread and stutters under mobile pinch-zoom).
-  if (!reducedMotion) {
-    if (isCoarsePointer) {
-      waveAnimations = [...document.querySelectorAll('.wave-mark')].map((mark, index) => gsap.to(mark, {
-        opacity: .35 + index * .1, duration: 3.4 + index * .5,
-        repeat: -1, yoyo: true, ease: 'sine.inOut', paused: wavesPaused || document.hidden,
-      }));
-    } else {
-      const shapes = [
-        'M32 53 C39 53 46 35 53 35 S67 53 74 53 S88 35 95 35',
-        'M110 116 C116 116 122 130 128 130 S140 116 146 116',
-      ];
-      waveAnimations = [...document.querySelectorAll('.wave-mark')].map((mark, index) => gsap.to(mark, {
-        attr: { d: shapes[index] }, duration: 3.2 + index * .5,
-        repeat: -1, yoyo: true, ease: 'sine.inOut', paused: wavesPaused || document.hidden,
-      }));
-    }
-  }
+  // Waves are static artwork: no wave tweens on any device, so there is no
+  // background ticker draining the battery while you explore.
   if (!revealStarted) {
     revealStarted = true;
     // Perf revamp: the full-map scale reveal forces a 1880x1940 repaint
@@ -82,20 +60,11 @@ media.add({ all: '(min-width: 0px)', reduce: '(prefers-reduced-motion: reduce)' 
     }
   }
   return () => {
-    waveAnimations = [];
     cancelTravel();
     finishReveal();
     gsap.killTweensOf('.island-art');
     gsap.set('.island-art', { clearProps: 'transform' });
   };
-});
-waveToggle.addEventListener('click', () => {
-  wavesPaused = !wavesPaused;
-  waveToggle.textContent = wavesPaused ? 'Resume waves' : 'Pause waves';
-  waveAnimations.forEach(animation => animation.paused(wavesPaused || document.hidden));
-});
-document.addEventListener('visibilitychange', () => {
-  waveAnimations.forEach(animation => animation.paused(wavesPaused || document.hidden));
 });
 skipReveal.addEventListener('click', () => {
   finishReveal();
