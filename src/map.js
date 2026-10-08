@@ -1,4 +1,4 @@
-import { tracks, mapSize, compass, bearingTo, distanceTo, toLeagues } from './tracks.js';
+import { tracks, mapSize, compass } from './tracks.js';
 
 const { gsap, ScrollToPlugin } = window;
 gsap.registerPlugin(ScrollToPlugin);
@@ -10,23 +10,21 @@ const status = document.querySelector('#map-status');
 const map = document.querySelector('#map');
 const skipReveal = document.querySelector('#skip-reveal');
 const waveToggle = document.querySelector('#wave-toggle');
+// Touch devices skip decorative tweens entirely (waves + reveal): the
+// scrolling itself is the motion, and killing the ticker is the biggest
+// single perf win on mobile GPUs.
+const isCoarsePointer = matchMedia('(pointer: coarse)').matches;
 let waveAnimations = [];
 let wavesPaused = false;
-const gps = document.querySelector('#gps');
-const gpsBearing = document.querySelector('#gps-bearing');
-const gpsDegrees = document.querySelector('#gps-degrees');
-const gpsTarget = document.querySelector('#gps-target');
-const gpsLeagues = document.querySelector('#gps-leagues');
-const gpsNeedle = document.querySelector('#gps-needle');
-const compassNeedle = document.querySelector('#compass-needle');
+const arrowLayer = document.querySelector('#edge-arrows');
 let reducedMotion = false;
 let travel;
 let reveal;
 let routeDrawing;
 let revealStarted = false;
-let guidance = 'nearest'; // 'nearest' or a track id pinned by navigation
-let guidanceReady = false;
-let guidanceTicking = false;
+// Edge arrows: one fixed-position arrow per island, pinned to the screen
+// edge nearest that island. Tapping an arrow sails to its island; the arrow
+// hides once its island is in view and returns when you sail away.
 
 function cancelTravel() {
   if (travel) {
@@ -50,30 +48,27 @@ const media = gsap.matchMedia();
 media.add({ all: '(min-width: 0px)', reduce: '(prefers-reduced-motion: reduce)' }, context => {
   reducedMotion = context.conditions.reduce;
   viewport.dataset.reducedMotion = String(reducedMotion);
-  waveToggle.hidden = reducedMotion;
-  if (!reducedMotion) {
-    // Waves morph `d` — cheap at 1x but janky under mobile pinch-zoom.
-    // Small screens get a slow opacity swell instead (compositor-only).
-    const isCoarseZoomRisk = matchMedia('(pointer: coarse)').matches || Math.min(screen.width, screen.height) < 500;
-    if (isCoarseZoomRisk) {
-      waveAnimations = [...document.querySelectorAll('.wave-mark')].map((mark, index) => gsap.to(mark, {
-        opacity: .35 + index * .1, duration: 3.4 + index * .5,
-        repeat: -1, yoyo: true, ease: 'sine.inOut', paused: wavesPaused || document.hidden,
-      }));
-    } else {
-      const shapes = [
-        'M32 53 C39 53 46 35 53 35 S67 53 74 53 S88 35 95 35',
-        'M110 116 C116 116 122 130 128 130 S140 116 146 116',
-      ];
-      waveAnimations = [...document.querySelectorAll('.wave-mark')].map((mark, index) => gsap.to(mark, {
-        attr: { d: shapes[index] }, duration: 3.2 + index * .5,
-        repeat: -1, yoyo: true, ease: 'sine.inOut', paused: wavesPaused || document.hidden,
-      }));
-    }
+  waveToggle.hidden = reducedMotion || isCoarsePointer;
+  // Perf revamp: waves are the biggest background cost (SVG attr morphs run
+  // on the main thread every tick, forever). Touch devices get zero wave
+  // tweens — static waves look identical when you are busy scrolling.
+  // Desktop keeps the gentle `d` morph.
+  if (!reducedMotion && !isCoarsePointer) {
+    const shapes = [
+      'M32 53 C39 53 46 35 53 35 S67 53 74 53 S88 35 95 35',
+      'M110 116 C116 116 122 130 128 130 S140 116 146 116',
+    ];
+    waveAnimations = [...document.querySelectorAll('.wave-mark')].map((mark, index) => gsap.to(mark, {
+      attr: { d: shapes[index] }, duration: 3.2 + index * .5,
+      repeat: -1, yoyo: true, ease: 'sine.inOut', paused: wavesPaused || document.hidden,
+    }));
   }
   if (!revealStarted) {
     revealStarted = true;
-    if (!reducedMotion && !location.hash) {
+    // Perf revamp: the full-map scale reveal forces a 1880x1940 repaint
+    // every frame for almost a second on load. Touch devices skip it and
+    // just appear — the compass-first view is the reveal.
+    if (!reducedMotion && !isCoarsePointer && !location.hash) {
       skipReveal.hidden = false;
       reveal = gsap.fromTo(map, { opacity: .45, scale: .988, transformOrigin: `${tracks[0].x}px 300px` }, {
         opacity: 1, scale: 1, duration: .9, ease: 'power2.out', clearProps: 'transform,opacity,transformOrigin',
@@ -88,8 +83,6 @@ media.add({ all: '(min-width: 0px)', reduce: '(prefers-reduced-motion: reduce)' 
     routeDrawing?.kill();
     gsap.killTweensOf('.island-art');
     gsap.set('.island-art', { clearProps: 'transform' });
-    if (scheduleGuidance.throttled) gsap.ticker.remove(scheduleGuidance.throttled);
-    guidanceTicking = false;
   };
 });
 waveToggle.addEventListener('click', () => {
@@ -105,18 +98,9 @@ skipReveal.addEventListener('click', () => {
   viewport.focus({ preventScroll: true });
 });
 
-// The compass rose is the centre of the star and the mobile start view.
-// Bearings are live: measured from the current viewport centre so the
-// compass and GPS needles swing like a real GPS as you sail.
-function viewportCenter() {
-  return {
-    x: viewport.scrollLeft + viewport.clientWidth / 2,
-    y: viewport.scrollTop + viewport.clientHeight / 2,
-  };
-}
-
-// Arrived when the island itself is centred on screen. Whole-card checks
-// almost never pass on narrow phones, so arrivals never triggered.
+// In-view check: the island counts as reached when its centre is on screen
+// with at least ~35% of its card visible. Whole-card checks almost never
+// pass on narrow phones, so arrows would never hide.
 function isInView(track) {
   const island = document.getElementById(track.id);
   if (!island) return false;
@@ -133,90 +117,115 @@ function isInView(track) {
   return centred && visibleShare >= .35;
 }
 
-function nearestOutOfView(from) {
-  let best = null;
-  let bestDistance = Infinity;
+// Edge arrows: one tappable arrow per island, pinned to the screen edge
+// nearest that island. Each arrow hides while its island is in view and
+// returns when you sail away. No ticker, no per-frame tweens: updates are
+// rAF-throttled from scroll and only write when placement changes.
+const arrowButtons = new Map();
+
+function buildArrows() {
+  arrowLayer.textContent = '';
+  arrowButtons.clear();
   for (const track of tracks) {
-    if (isInView(track)) continue;
-    const units = distanceTo(track, from);
-    if (units < bestDistance) {
-      best = track;
-      bestDistance = units;
-    }
-  }
-  return best;
-}
-
-function guidanceTrack() {
-  const from = viewportCenter();
-  if (guidance !== 'nearest') {
-    const pinned = tracks.find(track => track.id === guidance);
-    // Pinned popup stays until you reach its island, then hides.
-    if (pinned && !isInView(pinned)) return pinned;
-    guidance = 'nearest';
-    if (pinned && isInView(pinned)) return null;
-  }
-  // Free explore: hide the popup while standing on any island,
-  // otherwise point at the nearest island still off screen.
-  for (const track of tracks) if (isInView(track)) return null;
-  return nearestOutOfView(from);
-}
-
-function updateGuidance() {
-  if (!guidanceReady) return;
-  const track = guidanceTrack();
-  const arrived = track === null;
-  if (gps.hidden !== arrived) gps.hidden = arrived;
-  const hiddenFlag = String(arrived);
-  if (viewport.dataset.gpsHidden !== hiddenFlag) viewport.dataset.gpsHidden = hiddenFlag;
-  if (arrived) return;
-  const from = viewportCenter();
-  const { degrees, word } = bearingTo(track, from);
-  const rounded = Math.round(degrees);
-  // Skip DOM writes and needle tweens when the reading did not change.
-  if (gpsTarget.textContent !== track.name) {
-    gpsTarget.textContent = track.name;
-    gps.style.setProperty('--accent', track.accent);
-  }
-  if (gpsBearing.textContent !== word) gpsBearing.textContent = word;
-  const degreesText = `${rounded}°`;
-  if (gpsDegrees.textContent !== degreesText) gpsDegrees.textContent = degreesText;
-  const leaguesText = String(toLeagues(distanceTo(track, from)));
-  if (gpsLeagues.textContent !== leaguesText) gpsLeagues.textContent = leaguesText;
-  if (updateGuidance.lastDegrees === rounded && updateGuidance.lastTarget === track.id) return;
-  updateGuidance.lastDegrees = rounded;
-  updateGuidance.lastTarget = track.id;
-  if (reducedMotion) {
-    gpsNeedle.setAttribute('transform', `rotate(${degrees})`);
-    compassNeedle.setAttribute('transform', `rotate(${degrees})`);
-    return;
-  }
-  gsap.to(gpsNeedle, { rotation: degrees, svgOrigin: '0 0', duration: .45, ease: 'power2.out', overwrite: true });
-  gsap.to(compassNeedle, { rotation: degrees, svgOrigin: `${compass.x} ${compass.y}`, duration: .45, ease: 'power2.out', overwrite: true });
-}
-
-function scheduleGuidance() {
-  if (!guidanceReady || guidanceTicking) return;
-  guidanceTicking = true;
-  // rAF-throttled: scroll fires at 60-120Hz but the readout only needs ~10.
-  let queued = false;
-  const throttled = () => {
-    if (queued) return;
-    queued = true;
-    requestAnimationFrame(() => {
-      queued = false;
-      updateGuidance();
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'edge-arrow';
+    button.style.setProperty('--accent', track.accent);
+    button.dataset.track = track.id;
+    button.hidden = true;
+    button.setAttribute('aria-label', 'Sail to ' + track.name);
+    const icon = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    icon.setAttribute('viewBox', '-14 -14 28 28');
+    icon.setAttribute('aria-hidden', 'true');
+    const head = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    head.setAttribute('d', 'M0-9 L7 6 L0 2.5 L-7 6 Z');
+    icon.append(head);
+    const label = document.createElement('span');
+    label.textContent = track.name;
+    button.append(icon, label);
+    button.addEventListener('click', () => {
+      dismissHint();
+      viewport.focus({ preventScroll: true });
+      history.pushState(null, '', '#' + track.id);
+      selectIsland(track);
     });
-  };
-  scheduleGuidance.throttled = throttled;
-  gsap.ticker.add(throttled);
+    arrowLayer.append(button);
+    arrowButtons.set(track.id, button);
+  }
+}
+
+let arrowsQueued = false;
+
+function updateArrows() {
+  if (arrowsQueued) return;
+  arrowsQueued = true;
+  requestAnimationFrame(() => {
+    arrowsQueued = false;
+    const frame = viewport.getBoundingClientRect();
+    // Asymmetric pads keep arrows clear of the fixed menu (top) and hint
+    // (bottom) while staying near the true screen edge on the sides.
+    const minX = frame.left + 60;
+    const maxX = frame.right - 60;
+    const minY = frame.top + 100;
+    const maxY = frame.bottom - 96;
+    const midX = frame.left + frame.width / 2;
+    const midY = frame.top + frame.height / 2;
+    for (const track of tracks) {
+      const button = arrowButtons.get(track.id);
+      if (!button) continue;
+      const island = document.getElementById(track.id);
+      if (!island) {
+        if (!button.hidden) button.hidden = true;
+        continue;
+      }
+      const box = island.getBoundingClientRect();
+      const islandX = box.left + box.width / 2;
+      const islandY = box.top + box.height / 2;
+      const visibleWidth = Math.min(box.right, frame.right) - Math.max(box.left, frame.left);
+      const visibleHeight = Math.min(box.bottom, frame.bottom) - Math.max(box.top, frame.top);
+      const share = visibleWidth > 0 && visibleHeight > 0
+        ? visibleWidth * visibleHeight / (box.width * box.height)
+        : 0;
+      const inView = islandX >= frame.left && islandX <= frame.right &&
+        islandY >= frame.top && islandY <= frame.bottom && share >= .35;
+      if (inView) {
+        if (!button.hidden) button.hidden = true;
+        button.dataset.placed = '';
+        continue;
+      }
+      const dx = islandX - midX;
+      const dy = islandY - midY;
+      const angle = Math.atan2(dy, dx) * 180 / Math.PI + 90;
+      const candidates = [];
+      if (dx > 0) candidates.push((maxX - midX) / dx);
+      else if (dx < 0) candidates.push((minX - midX) / dx);
+      if (dy > 0) candidates.push((maxY - midY) / dy);
+      else if (dy < 0) candidates.push((minY - midY) / dy);
+      const valid = candidates.filter(value => value > 0);
+      const t = Math.min.apply(null, valid.length ? valid : [1]);
+      const edgeX = midX + dx * t;
+      const edgeY = midY + dy * t;
+      if (button.hidden) button.hidden = false;
+      const key = Math.round(edgeX - frame.left) + '|' + Math.round(edgeY - frame.top) + '|' + Math.round(angle);
+      if (button.dataset.placed === key) continue;
+      button.dataset.placed = key;
+      button.style.transform = 'translate(' + (edgeX - frame.left) + 'px, ' + (edgeY - frame.top) + 'px) translate(-50%, -50%)';
+      button.firstChild.style.transform = 'rotate(' + angle + 'deg)';
+    }
+  });
 }
 
 function emphasizeIsland(track) {
   routeDrawing?.kill();
   gsap.killTweensOf('.island-art');
   gsap.set('.island-art', { clearProps: 'transform' });
-  if (reducedMotion) return;
+  // Perf revamp: route draw + island pop are two more main-thread tweens
+  // firing on every arrival. Touch skips them (the scroll IS the motion);
+  // desktop keeps the pop + draw.
+  if (reducedMotion || isCoarsePointer) {
+    updateArrows();
+    return;
+  }
   gsap.fromTo(`#${track.id} .island-art`, { scale: 1 }, { scale: 1.05, duration: .28, repeat: 1, yoyo: true, ease: 'sine.inOut', clearProps: 'transform' });
   const path = document.querySelector(`#route-${track.id}`);
   const svg = path.ownerSVGElement;
@@ -253,15 +262,13 @@ function destination(track) {
 function selectIsland(track, focus = true, animate = true) {
   finishReveal();
   cancelTravel();
-  guidance = track.id;
-  guidanceReady = true;
-  scheduleGuidance();
   document.querySelectorAll('.island').forEach(island => island.classList.toggle('is-selected', island.id === track.id));
   const arrive = () => {
     travel = null;
     viewport.dataset.travelling = 'false';
     if (focus) document.querySelector(`#${track.id} h2`).focus({ preventScroll: true });
     status.textContent = `${track.name} island. Join the crew to open its WhatsApp group.`;
+    updateArrows();
     if (animate) emphasizeIsland(track);
   };
   const { left, top } = destination(track);
@@ -335,18 +342,17 @@ document.querySelector('#dismiss-hint').addEventListener('click', dismissHint);
 viewport.addEventListener('touchmove', dismissHint, { passive: true, once: true });
 viewport.addEventListener('wheel', dismissHint, { passive: true, once: true });
 
-// Guidance follows every native scroll, in both axes, without touching the gesture.
-for (const type of ['scroll', 'touchend']) viewport.addEventListener(type, updateGuidance, { passive: true });
-// A resize (or mobile URL-bar collapse) can move the compass without a scroll.
+buildArrows();
+updateArrows();
+// Arrows follow every native scroll, in both axes, without touching the gesture.
+for (const type of ['scroll', 'touchend']) viewport.addEventListener(type, updateArrows, { passive: true });
+// A resize (or mobile URL-bar collapse) can move islands without a scroll.
 let resizeTimer;
 window.addEventListener('resize', () => {
   clearTimeout(resizeTimer);
-  resizeTimer = setTimeout(updateGuidance, 120);
+  resizeTimer = setTimeout(updateArrows, 120);
 });
-document.fonts?.ready.then(updateGuidance);
-guidanceReady = true;
-scheduleGuidance();
-updateGuidance();
+document.fonts?.ready.then(updateArrows);
 
 // Crew banners are tiny (~7-19 KiB each); load them with the stylesheet
 // instead of swapping backgrounds in JS — no flash, no zoom stutter.

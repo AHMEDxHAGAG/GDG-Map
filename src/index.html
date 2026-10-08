@@ -59,9 +59,8 @@
           <path d="M0-85V0L13-13Z M85 0H0L13 13Z M0 85V0L-13 13Z M-85 0H0L-13-13Z" fill="#554535"/>
           <path d="m-44-44 44 22 44-22-22 44 22 44-44-22-44 22 22-44Z" stroke-width="1"/>
           <circle r="7" fill="#E8D3A3"/>
-          <g id="compass-needle" class="compass-needle"><path d="M0-64 7 0 0 10 -7 0Z" fill="#A44732" stroke-width="1.2"/></g>
           <g class="compass-labels" stroke="none"><text y="-102">N</text><text x="70" y="-64">NE</text><text x="106" y="5">E</text><text x="70" y="76">SE</text><text y="118">S</text><text x="-78" y="76">SW</text><text x="-108" y="5">W</text><text x="-78" y="-64">NW</text></g>
-          <text class="compass-caption" y="150" text-anchor="middle" stroke="none" fill="#554535">Course to the nearest crew</text>
+          <text class="compass-caption" y="150" text-anchor="middle" stroke="none" fill="#554535">Five crews to find</text>
         </g>
         <g transform="translate(180 1200) rotate(-12)" fill="none" stroke="#554535" stroke-width="2" opacity=".7">
           <path d="M-45 17q40 12 90 0l-15 23h-50Z M0-72V25 M4-65q44 19 27 70H4Z M-6-54q-10 22-34 54h34Z M-52 47q9 7 18 0t18 0t18 0t18 0t18 0"/>
@@ -72,29 +71,8 @@
       <footer class="map-signoff"><span aria-hidden="true">⚓</span><p>No set course.<br>Just a crew worth finding.</p><small>Google Developer Groups on Campus<br>AASTMT Aswan</small></footer>
     </div>
   </main>
-  <aside class="gps" id="gps" hidden aria-label="Compass guidance">
-    <svg class="gps-dial" viewBox="-50 -50 100 100" aria-hidden="true">
-      <circle r="42" fill="none" stroke="#554535" stroke-width="1.4"/>
-      <circle r="34" fill="none" stroke="#9A7043" stroke-width=".7" stroke-dasharray="1 5"/>
-      <g class="gps-ticks" stroke="#554535" stroke-width="1.4">
-        <line x1="0" y1="-42" x2="0" y2="-34"/>
-        <line x1="0" y1="-42" x2="0" y2="-34" transform="rotate(45)"/>
-        <line x1="0" y1="-42" x2="0" y2="-34" transform="rotate(90)"/>
-        <line x1="0" y1="-42" x2="0" y2="-34" transform="rotate(135)"/>
-        <line x1="0" y1="-42" x2="0" y2="-34" transform="rotate(180)"/>
-        <line x1="0" y1="-42" x2="0" y2="-34" transform="rotate(225)"/>
-        <line x1="0" y1="-42" x2="0" y2="-34" transform="rotate(270)"/>
-        <line x1="0" y1="-42" x2="0" y2="-34" transform="rotate(315)"/>
-      </g>
-      <g id="gps-needle"><path d="M0-31 L9 13 L0 5 L-9 13 Z" fill="#24201A"/><circle r="3.4" fill="#E8D3A3" stroke="#24201A" stroke-width="1.4"/></g>
-    </svg>
-    <div class="gps-readout">
-      <p class="gps-course"><span id="gps-bearing">N</span><small id="gps-degrees">0°</small></p>
-      <p class="gps-target" id="gps-target">Web</p>
-      <p class="gps-distance"><span id="gps-leagues">0</span> leagues to sail</p>
-    </div>
-  </aside>
-  <p id="map-instructions" class="sr-only">The map opens on the compass rose at the centre of the star. Scroll in any direction to explore, or use Find an island to jump to a track. A guidance panel reads the compass direction and distance to the nearest island, and hides when you reach that island. Each Join the crew link opens WhatsApp in a new tab.</p>
+  <nav class="edge-arrows" id="edge-arrows" aria-label="Islands off screen"></nav>
+  <p id="map-instructions" class="sr-only">The map opens on the compass rose at the centre of the star. Scroll in any direction to explore, or use Find an island to jump to a track. Arrows pinned to the screen edge point toward islands that are off screen, and each arrow hides once its island is in view. Each Join the crew link opens WhatsApp in a new tab.</p>
   <div class="explore-hint" id="explore-hint" hidden><span aria-hidden="true">✥</span><p>Swipe to explore.<br><strong>Find your crew.</strong></p><button id="dismiss-hint" aria-label="Dismiss exploration hint">×</button></div>
   <button class="skip-reveal" id="skip-reveal" hidden>Skip reveal</button>
   <p class="sr-only" role="status" id="map-status"></p>

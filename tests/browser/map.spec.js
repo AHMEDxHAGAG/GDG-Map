@@ -68,7 +68,7 @@ test('controls have at least 44px targets and keyboard navigation works', async 
   await summary.focus();
   await page.keyboard.press('Enter');
   await expect(page.locator('#island-menu')).toHaveAttribute('open', '');
-  for (const element of await page.locator('summary, .island-menu a, .crew-link, #dismiss-hint, #wave-toggle').all()) {
+  for (const element of await page.locator('summary, .island-menu a, .crew-link, #dismiss-hint, #wave-toggle, .edge-arrow').all()) {
     const box = await element.boundingBox();
     if (box) expect(box.height).toBeGreaterThanOrEqual(44);
   }
@@ -103,16 +103,22 @@ test('reduced motion uses instant navigation and no decorative tweens', async ({
   expect(await page.evaluate(() => window.gsap.getTweensOf('.wave-mark').length)).toBe(0);
 });
 
-test('wave marks roll gently, can be paused, and stop for reduced motion', async ({ page }, testInfo) => {
+test('wave marks roll gently on desktop and stay static on touch', async ({ page }, testInfo) => {
   await page.goto('/');
-  const wave = page.locator('.wave-mark').first();
   const isMobile = !!testInfo.project.use.hasTouch;
-  // Mobile/coarse pointers get a compositor-only opacity swell (no `d` morph:
-  // it stutters under pinch-zoom); desktop morphs the path shape instead.
-  const attribute = isMobile ? 'opacity' : 'd';
-  const readWave = () => wave.evaluate((element, key) => key === 'opacity'
-    ? getComputedStyle(element).opacity
-    : element.getAttribute('d'), attribute);
+  if (isMobile) {
+    // Perf revamp: touch devices run zero wave tweens (scrolling is the
+    // motion) and hide the toggle; waves render statically.
+    await expect(page.locator('#wave-toggle')).toBeHidden();
+    expect(await page.evaluate(() => window.gsap.getTweensOf('.wave-mark').length)).toBe(0);
+    const wave = page.locator('.wave-mark').first();
+    const first = await wave.getAttribute('d');
+    await page.waitForTimeout(300);
+    expect(await wave.getAttribute('d')).toBe(first);
+    return;
+  }
+  const wave = page.locator('.wave-mark').first();
+  const readWave = () => wave.evaluate(element => element.getAttribute('d'));
   const initial = await readWave();
   await expect.poll(readWave).not.toBe(initial);
   await page.locator('summary').click();
@@ -130,7 +136,7 @@ test('wave marks roll gently, can be paused, and stop for reduced motion', async
   expect(await readWave()).toBe(still);
 });
 
-test('mobile starts on the compass with live guidance that hides on arrival', async ({ page }, testInfo) => {
+test('mobile starts on the compass with edge arrows that hide on arrival', async ({ page }, testInfo) => {
   test.skip(!testInfo.project.use.hasTouch, 'Mobile start view');
   await page.goto('/');
   await page.evaluate(() => document.fonts.ready);
@@ -142,21 +148,23 @@ test('mobile starts on the compass with live guidance that hides on arrival', as
     return Math.hypot(compass.x - centre.x, compass.y - centre.y);
   });
   expect(centred).toBeLessThan(80);
-  // GPS popup reads a compass point and distance for the nearest off-screen island.
-  const gps = page.locator('#gps');
-  await expect(gps).toBeVisible();
-  await expect(page.locator('#gps-bearing')).not.toBeEmpty();
-  expect(await page.locator('#gps-target').textContent()).not.toBe('');
-  const firstBearing = await page.locator('#gps-degrees').textContent();
-  // Sailing changes the live bearing, so the needle follows the GPS course.
+  // Edge arrows pin to the screen edge, each naming its off-screen island.
+  const webArrow = page.locator('.edge-arrow[data-track="web"]');
+  await expect(webArrow).toBeVisible();
+  await expect(webArrow).toContainText('Web');
+  // Sailing to an island hides only that island's arrow.
   await openIsland(page, 'AI');
-  await expect(gps).toBeHidden();
-  await expect(page.locator('#map-viewport')).toHaveAttribute('data-gps-hidden', 'true');
-  // Sail back to open water away from every island: the popup returns
-  // with a fresh live bearing.
+  await expect(page.locator('.edge-arrow[data-track="ai"]')).toBeHidden();
+  await expect(webArrow).toBeVisible();
+  // Tapping an edge arrow sails to its island and hides on arrival.
+  await webArrow.click();
+  await expect(page.locator('#web')).toHaveClass(/is-selected/);
+  await expect(page.locator('#web h2')).toBeFocused();
+  await expect(webArrow).toBeHidden();
+  // Sail back to open water away from every island: arrows return.
   await page.evaluate(() => document.querySelector('#map-viewport').scrollTo({ left: 0, top: 980 }));
-  await expect(gps).toBeVisible();
-  await expect(page.locator('#gps-degrees')).not.toHaveText(firstBearing);
+  await expect(webArrow).toBeVisible();
+  await expect(page.locator('.edge-arrow[data-track="ai"]')).toBeVisible();
 });
 
 test('crew links use the supplied banner without obscuring text or destinations', async ({ page }) => {
@@ -182,8 +190,15 @@ test('full map retains the star formation on a large screen', async ({ page }, t
   await page.screenshot({ path: 'test-results/star-map-overview.png' });
 });
 
-test('reveal can be skipped without hiding or blocking the map', async ({ page }) => {
+test('reveal can be skipped without hiding or blocking the map', async ({ page }, testInfo) => {
   await page.goto('/');
+  if (testInfo.project.use.hasTouch) {
+    // Perf revamp: touch devices skip the reveal entirely (compass-first
+    // view is the reveal), so there is nothing to skip.
+    await expect(page.locator('#skip-reveal')).toBeHidden();
+    await expect(page.locator('#map')).toBeVisible();
+    return;
+  }
   await page.locator('#skip-reveal').click();
   await expect(page.locator('#skip-reveal')).toBeHidden();
   await expect(page.locator('#map')).toHaveCSS('opacity', '1');
