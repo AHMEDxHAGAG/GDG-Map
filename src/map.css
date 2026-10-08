@@ -26,7 +26,6 @@ h1{font-size:68px;line-height:.91;letter-spacing:-1px;margin:0 0 17px}
 .compass-labels{font:22px 'Pirata One',serif;text-anchor:middle}
 .compass-labels text{fill:#554535}
 .compass-tick{stroke:#554535;stroke-width:2;stroke-linecap:round}
-.sailing-routes{opacity:.65}
 .island{position:absolute;left:var(--x);top:var(--y);width:280px;transform:translateX(-50%);text-align:center;scroll-margin:90px;z-index:2}
 .island-art{position:relative;width:260px;height:260px;margin:0 auto 2px;transform-origin:50% 65%}
 .island img{display:block;width:100%;height:100%;object-fit:contain;user-select:none;-webkit-user-drag:none;content-visibility:auto}

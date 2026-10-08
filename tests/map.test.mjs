@@ -19,14 +19,17 @@ test('each island fits inside the shared two-dimensional map', () => {
   }
 });
 
-test('five islands occupy the top, side, and lower tips of a star', () => {
-  const [top, right, left, lowerLeft, lowerRight] = tracks;
-  assert.ok(left.x < lowerLeft.x && lowerLeft.x < top.x);
-  assert.ok(top.x < lowerRight.x && lowerRight.x < right.x);
-  assert.ok(top.y < left.y && top.y < right.y);
-  assert.equal(left.y, right.y);
-  assert.equal(lowerLeft.y, lowerRight.y);
-  assert.ok(lowerLeft.y > left.y + 470);
+test('five islands are scattered with wide water between each pair', () => {
+  // No symmetric formation: every island sits on its own row and column.
+  assert.equal(new Set(tracks.map(track => track.x)).size, tracks.length);
+  assert.equal(new Set(tracks.map(track => track.y)).size, tracks.length);
+  let closest = Infinity;
+  for (let i = 0; i < tracks.length; i++) {
+    for (let j = i + 1; j < tracks.length; j++) {
+      closest = Math.min(closest, Math.hypot(tracks[i].x - tracks[j].x, tracks[i].y - tracks[j].y));
+    }
+  }
+  assert.ok(closest >= 700, `closest pair is only ${Math.round(closest)}px apart`);
 });
 
 test('crew banners are optimized copies with actual HTML link text', async () => {

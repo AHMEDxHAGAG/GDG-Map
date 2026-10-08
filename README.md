@@ -15,8 +15,8 @@ Open `http://127.0.0.1:4173`. Restart `npm run dev` after source changes, or run
 
 ## Edit the map
 
-- `src/tracks.js`: single configuration for names, descriptions, artwork, coordinates, accent colors, and WhatsApp links. Coordinates use an 1880 × 1940 map, with each island's horizontal center and top edge. Web occupies the top point, Data Science and AI the side points, and Software Engineering and Cybersecurity the lower points of a star-shaped sailing route.
-- `src/index.html`: map template, dotted routes, compass, ship, edge-arrow guidance, and navigation.
+- `src/tracks.js`: single configuration for names, descriptions, artwork, coordinates, accent colors, and WhatsApp links. Coordinates use an 1880 × 1940 map, with each island's horizontal center and top edge. The five islands are scattered irregularly with wide water between each pair — no shared rows, columns, or formation.
+- `src/index.html`: map template, compass, ship, edge-arrow guidance, and navigation.
 - `src/map.css`: supplied visual palette, Pirata One headings, Nunito Sans controls, edge arrows pinned to the screen edge, and safe-area handling.
 - `src/map.js`: native scrolling, first-visit hint, GSAP reveal (desktop only), ScrollToPlugin travel, compass-first start view, edge arrows per island that hide on arrival, interruption handling, and reduced-motion preferences via `gsap.matchMedia()`. Touch devices run zero decorative tweens.
 - `scripts/build.mjs`: renders actual island HTML and links, then copies local fonts, artwork, and GSAP into `dist/`.
@@ -67,4 +67,4 @@ Vercel automatically assigned the very first deployment a production alias when 
 
 All 8 configuration/build checks and 68 Chromium browser tests passed (across 360 × 800, 390 × 844, 430 × 932, and desktop 1280 × 900), including the compass-first start view and edge arrows that hide on arrival. Four mobile-only checks are intentionally skipped in the desktop project, and the full-map overview is captured once on desktop rather than repeated on mobile. The three mobile widths passed native diagonal scrolling, accidental-tap prevention, and touch cancellation using browser-generated touch input. Banner rendering, desktop wave motion with pause/resume, static touch waves, and disabling waves for reduced motion are also covered.
 
-The updated map passes cold-load budgets of 1.1 MB transferred, 5s DOM ready / largest contentful paint, and cumulative layout shift below 0.1, with cache disabled, 100ms latency, and 400 KB/s download throughput. These are local Chromium emulation results, not production performance guarantees or physical-device Safari testing. Screenshots (including `star-map-overview.png`) and per-width loading metrics are in `test-results/` after a test run.
+The updated map passes cold-load budgets of 1.1 MB transferred, 5s DOM ready / largest contentful paint, and cumulative layout shift below 0.1, with cache disabled, 100ms latency, and 400 KB/s download throughput. These are local Chromium emulation results, not production performance guarantees or physical-device Safari testing. Screenshots (including `scattered-map-overview.png`) and per-width loading metrics are in `test-results/` after a test run.

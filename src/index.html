@@ -33,16 +33,8 @@
         <defs>
           <pattern id="waves" width="170" height="165" patternUnits="userSpaceOnUse"><g fill="none" stroke="#456E75" stroke-width="1.3" opacity=".32"><path class="wave-mark" d="M32 44 C39 35 46 35 53 44 S67 53 74 44 S88 35 95 44"/><path class="wave-mark" d="M110 123 C116 130 122 130 128 123 S140 116 146 123"/></g></pattern>
           <mask id="open-sea"><rect width="{{MAP_WIDTH}}" height="{{MAP_HEIGHT}}" fill="white"/><rect x="{{TITLE_MASK_X}}" y="70" width="360" height="245" fill="black"/>{{SEA_MASK}}<rect x="805" y="1735" width="270" height="170" fill="black"/></mask>
-          <mask id="clear-labels"><rect width="{{MAP_WIDTH}}" height="{{MAP_HEIGHT}}" fill="white"/>{{LABEL_MASK}}</mask>
         </defs>
         <rect x="45" y="45" width="1790" height="1850" fill="url(#waves)" mask="url(#open-sea)"/>
-        <g class="sailing-routes" fill="none" stroke="#554535" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="2 11" mask="url(#clear-labels)">
-          <path id="route-ai" d="M940 405 L1120 820 Q1127 838 1145 837 L1600 800"/>
-          <path id="route-cybersecurity" d="M1600 800 L1250 1105 Q1230 1122 1236 1145 L1350 1410"/>
-          <path id="route-software-engineering" d="M1350 1410 L960 1240 Q940 1230 920 1240 L530 1410"/>
-          <path id="route-data-science" d="M530 1410 L645 1145 Q650 1122 630 1105 L280 800"/>
-          <path id="route-web" d="M280 800 L735 837 Q753 838 760 820 L940 405"/>
-        </g>
         <g class="compass" transform="translate({{COMPASS_X}} {{COMPASS_Y}})" stroke="#554535" fill="none">
           <circle r="64" stroke-width="1"/><circle r="56" stroke-width=".6"/>
           <g class="compass-ticks">
@@ -72,7 +64,7 @@
     </div>
   </main>
   <nav class="edge-arrows" id="edge-arrows" aria-label="Islands off screen"></nav>
-  <p id="map-instructions" class="sr-only">The map opens on the compass rose at the centre of the star. Scroll in any direction to explore, or use Find an island to jump to a track. Arrows pinned to the screen edge point toward islands that are off screen, and each arrow hides once its island is in view. Each Join the crew link opens WhatsApp in a new tab.</p>
+  <p id="map-instructions" class="sr-only">The map opens on the compass rose near the middle of the map. Scroll in any direction to explore, or use Find an island to jump to a track. Arrows pinned to the screen edge point toward islands that are off screen, and each arrow hides once its island is in view. Each Join the crew link opens WhatsApp in a new tab.</p>
   <div class="explore-hint" id="explore-hint" hidden><span aria-hidden="true">✥</span><p>Swipe to explore.<br><strong>Find your crew.</strong></p><button id="dismiss-hint" aria-label="Dismiss exploration hint">×</button></div>
   <button class="skip-reveal" id="skip-reveal" hidden>Skip reveal</button>
   <p class="sr-only" role="status" id="map-status"></p>

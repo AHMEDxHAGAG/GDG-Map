@@ -20,7 +20,6 @@ const arrowLayer = document.querySelector('#edge-arrows');
 let reducedMotion = false;
 let travel;
 let reveal;
-let routeDrawing;
 let revealStarted = false;
 // Edge arrows: one fixed-position arrow per island, pinned to the screen
 // edge nearest that island. Tapping an arrow sails to its island; the arrow
@@ -80,7 +79,6 @@ media.add({ all: '(min-width: 0px)', reduce: '(prefers-reduced-motion: reduce)' 
     waveAnimations = [];
     cancelTravel();
     finishReveal();
-    routeDrawing?.kill();
     gsap.killTweensOf('.island-art');
     gsap.set('.island-art', { clearProps: 'transform' });
   };
@@ -216,39 +214,15 @@ function updateArrows() {
 }
 
 function emphasizeIsland(track) {
-  routeDrawing?.kill();
   gsap.killTweensOf('.island-art');
   gsap.set('.island-art', { clearProps: 'transform' });
-  // Perf revamp: route draw + island pop are two more main-thread tweens
-  // firing on every arrival. Touch skips them (the scroll IS the motion);
-  // desktop keeps the pop + draw.
+  // Perf revamp: the island pop is a main-thread tween firing on every
+  // arrival. Touch skips it (the scroll IS the motion); desktop keeps it.
   if (reducedMotion || isCoarsePointer) {
     updateArrows();
     return;
   }
   gsap.fromTo(`#${track.id} .island-art`, { scale: 1 }, { scale: 1.05, duration: .28, repeat: 1, yoyo: true, ease: 'sine.inOut', clearProps: 'transform' });
-  const path = document.querySelector(`#route-${track.id}`);
-  const svg = path.ownerSVGElement;
-  const namespace = 'http://www.w3.org/2000/svg';
-  const mask = document.createElementNS(namespace, 'mask');
-  mask.id = 'route-reveal';
-  mask.setAttribute('maskUnits', 'userSpaceOnUse');
-  mask.setAttribute('x', '0'); mask.setAttribute('y', '0');
-  mask.setAttribute('width', String(mapSize.width)); mask.setAttribute('height', String(mapSize.height));
-  const stroke = path.cloneNode();
-  stroke.removeAttribute('id');
-  const length = path.getTotalLength();
-  stroke.setAttribute('fill', 'none');
-  stroke.setAttribute('stroke', 'white');
-  stroke.setAttribute('stroke-width', '10');
-  stroke.setAttribute('stroke-dasharray', `${length} ${length}`);
-  mask.append(stroke);
-  svg.querySelector('defs').append(mask);
-  path.setAttribute('mask', 'url(#route-reveal)');
-  const cleanRoute = () => { path.removeAttribute('mask'); mask.remove(); routeDrawing = null; };
-  routeDrawing = gsap.fromTo(stroke, { strokeDashoffset: length }, {
-    strokeDashoffset: 0, duration: .65, ease: 'power1.inOut', onComplete: cleanRoute, onInterrupt: cleanRoute,
-  });
 }
 
 function destination(track) {
@@ -317,7 +291,7 @@ function openHash() {
     selectIsland(track, false, false);
     return;
   }
-  // Open on the compass rose at the centre of the star. Centre immediately,
+  // Open on the compass rose near the middle of the map. Centre immediately,
   // then re-centre once layout and fonts settle so URL bars and webfonts
   // cannot leave mobile visitors at the corner of the map.
   const centreCompass = () => {

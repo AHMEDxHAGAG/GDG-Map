@@ -176,7 +176,7 @@ test('crew links use the supplied banner without obscuring text or destinations'
   await expect(link).toHaveAttribute('href', tracks[0].whatsapp);
 });
 
-test('full map retains the star formation on a large screen', async ({ page }, testInfo) => {
+test('full map shows the scattered layout on a large screen', async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== 'desktop', 'One overview capture is enough');
   await page.setViewportSize(mapSize);
   await page.goto('/');
@@ -187,7 +187,7 @@ test('full map retains the star formation on a large screen', async ({ page }, t
     expect(bounds.x + bounds.width / 2).toBe(track.x);
     expect(bounds.y).toBe(track.y);
   }
-  await page.screenshot({ path: 'test-results/star-map-overview.png' });
+  await page.screenshot({ path: 'test-results/scattered-map-overview.png' });
 });
 
 test('reveal can be skipped without hiding or blocking the map', async ({ page }, testInfo) => {
