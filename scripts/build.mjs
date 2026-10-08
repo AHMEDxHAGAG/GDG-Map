@@ -16,7 +16,7 @@ const islands = tracks.map(track => `
   </section>`).join('\n');
 let html = await readFile('src/index.html', 'utf8');
 const seaMask = tracks.map(track => `<rect x="${track.x - 145}" y="${track.y}" width="290" height="470" fill="black"/>`).join('');
-for (const [key, value] of Object.entries({ NAVIGATION: navigation, ISLANDS: islands, SEA_MASK: seaMask, MAP_WIDTH: mapSize.width, MAP_HEIGHT: mapSize.height, TITLE_X: tracks[0].x - 165, TITLE_MASK_X: tracks[0].x - 180, COMPASS_X: compass.x, COMPASS_Y: compass.y })) html = html.replaceAll(`{{${key}}}`, value);
+for (const [key, value] of Object.entries({ NAVIGATION: navigation, ISLANDS: islands, SEA_MASK: seaMask, MAP_WIDTH: mapSize.width, MAP_HEIGHT: mapSize.height, TITLE_X: 180, TITLE_MASK_X: 165, COMPASS_X: compass.x, COMPASS_Y: compass.y })) html = html.replaceAll(`{{${key}}}`, value);
 await mkdir('dist', { recursive: true });
 // cp() never deletes: drop stale optimized copies (e.g. retired 640w
 // islands) so dist/ cannot ship bytes the HTML no longer references.

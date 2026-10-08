@@ -103,22 +103,15 @@ test('reduced motion uses instant navigation and no decorative tweens', async ({
   expect(await page.evaluate(() => window.gsap.getTweensOf('.wave-mark').length)).toBe(0);
 });
 
-test('wave marks roll gently on desktop and stay static on touch', async ({ page }, testInfo) => {
+test('wave marks move on every device and can be paused', async ({ page }, testInfo) => {
   await page.goto('/');
   const isMobile = !!testInfo.project.use.hasTouch;
-  if (isMobile) {
-    // Perf revamp: touch devices run zero wave tweens (scrolling is the
-    // motion) and hide the toggle; waves render statically.
-    await expect(page.locator('#wave-toggle')).toBeHidden();
-    expect(await page.evaluate(() => window.gsap.getTweensOf('.wave-mark').length)).toBe(0);
-    const wave = page.locator('.wave-mark').first();
-    const first = await wave.getAttribute('d');
-    await page.waitForTimeout(300);
-    expect(await wave.getAttribute('d')).toBe(first);
-    return;
-  }
+  // Desktop morphs the path shape; touch swells opacity instead
+  // (compositor-only, no main-thread `d` morph under pinch-zoom).
   const wave = page.locator('.wave-mark').first();
-  const readWave = () => wave.evaluate(element => element.getAttribute('d'));
+  const readWave = () => wave.evaluate((element, key) => key === 'opacity'
+    ? getComputedStyle(element).opacity
+    : element.getAttribute('d'), isMobile ? 'opacity' : 'd');
   const initial = await readWave();
   await expect.poll(readWave).not.toBe(initial);
   await page.locator('summary').click();
@@ -152,6 +145,15 @@ test('mobile starts on the compass with edge arrows that hide on arrival', async
   const webArrow = page.locator('.edge-arrow[data-track="web"]');
   await expect(webArrow).toBeVisible();
   await expect(webArrow).toContainText('Web');
+  // No arrow may park underneath the fixed island menu (top-right).
+  const menuBox = await page.locator('.navigation').boundingBox();
+  for (const id of ['web', 'ai', 'data-science', 'software-engineering', 'cybersecurity']) {
+    const box = await page.locator(`.edge-arrow[data-track="${id}"]`).boundingBox();
+    if (!box) continue;
+    const underMenu = box.x < menuBox.x + menuBox.width && box.x + box.width > menuBox.x &&
+      box.y < menuBox.y + menuBox.height && box.y + box.height > menuBox.y;
+    expect(underMenu).toBe(false);
+  }
   // Sailing to an island hides only that island's arrow.
   await openIsland(page, 'AI');
   await expect(page.locator('.edge-arrow[data-track="ai"]')).toBeHidden();

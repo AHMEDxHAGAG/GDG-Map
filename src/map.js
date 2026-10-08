@@ -47,20 +47,26 @@ const media = gsap.matchMedia();
 media.add({ all: '(min-width: 0px)', reduce: '(prefers-reduced-motion: reduce)' }, context => {
   reducedMotion = context.conditions.reduce;
   viewport.dataset.reducedMotion = String(reducedMotion);
-  waveToggle.hidden = reducedMotion || isCoarsePointer;
-  // Perf revamp: waves are the biggest background cost (SVG attr morphs run
-  // on the main thread every tick, forever). Touch devices get zero wave
-  // tweens — static waves look identical when you are busy scrolling.
-  // Desktop keeps the gentle `d` morph.
-  if (!reducedMotion && !isCoarsePointer) {
-    const shapes = [
-      'M32 53 C39 53 46 35 53 35 S67 53 74 53 S88 35 95 35',
-      'M110 116 C116 116 122 130 128 130 S140 116 146 116',
-    ];
-    waveAnimations = [...document.querySelectorAll('.wave-mark')].map((mark, index) => gsap.to(mark, {
-      attr: { d: shapes[index] }, duration: 3.2 + index * .5,
-      repeat: -1, yoyo: true, ease: 'sine.inOut', paused: wavesPaused || document.hidden,
-    }));
+  waveToggle.hidden = reducedMotion;
+  // Waves stay cheap everywhere: desktop morphs the path shape, touch
+  // devices get a compositor-only opacity swell (no `d` morph — it runs on
+  // the main thread and stutters under mobile pinch-zoom).
+  if (!reducedMotion) {
+    if (isCoarsePointer) {
+      waveAnimations = [...document.querySelectorAll('.wave-mark')].map((mark, index) => gsap.to(mark, {
+        opacity: .35 + index * .1, duration: 3.4 + index * .5,
+        repeat: -1, yoyo: true, ease: 'sine.inOut', paused: wavesPaused || document.hidden,
+      }));
+    } else {
+      const shapes = [
+        'M32 53 C39 53 46 35 53 35 S67 53 74 53 S88 35 95 35',
+        'M110 116 C116 116 122 130 128 130 S140 116 146 116',
+      ];
+      waveAnimations = [...document.querySelectorAll('.wave-mark')].map((mark, index) => gsap.to(mark, {
+        attr: { d: shapes[index] }, duration: 3.2 + index * .5,
+        repeat: -1, yoyo: true, ease: 'sine.inOut', paused: wavesPaused || document.hidden,
+      }));
+    }
   }
   if (!revealStarted) {
     revealStarted = true;
@@ -201,8 +207,11 @@ function updateArrows() {
       else if (dy < 0) candidates.push((minY - midY) / dy);
       const valid = candidates.filter(value => value > 0);
       const t = Math.min.apply(null, valid.length ? valid : [1]);
-      const edgeX = midX + dx * t;
+      let edgeX = midX + dx * t;
       const edgeY = midY + dy * t;
+      // The fixed island menu sits top-right: slide arrows left along the
+      // top edge instead of parking them underneath it.
+      if (edgeY < frame.top + 140 && edgeX > frame.right - 230) edgeX = frame.right - 230;
       if (button.hidden) button.hidden = false;
       const key = Math.round(edgeX - frame.left) + '|' + Math.round(edgeY - frame.top) + '|' + Math.round(angle);
       if (button.dataset.placed === key) continue;

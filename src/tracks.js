@@ -25,7 +25,7 @@ export const tracks = [
   {
     id: 'web', name: 'Web',
     description: 'Build for the web. Connect your ideas to the world.',
-    artwork: 'web', x: 1200, y: 80, accent: '#4285F4',
+    artwork: 'web', x: 1000, y: 120, accent: '#4285F4',
     whatsapp: 'https://chat.whatsapp.com/H7y5P34gusB1zGMDPeSVPP',
   },
   {
