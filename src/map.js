@@ -52,14 +52,24 @@ media.add({ all: '(min-width: 0px)', reduce: '(prefers-reduced-motion: reduce)' 
   viewport.dataset.reducedMotion = String(reducedMotion);
   waveToggle.hidden = reducedMotion;
   if (!reducedMotion) {
-    const shapes = [
-      'M32 53 C39 53 46 35 53 35 S67 53 74 53 S88 35 95 35',
-      'M110 116 C116 116 122 130 128 130 S140 116 146 116',
-    ];
-    waveAnimations = [...document.querySelectorAll('.wave-mark')].map((mark, index) => gsap.to(mark, {
-      attr: { d: shapes[index] }, duration: 3.2 + index * .5,
-      repeat: -1, yoyo: true, ease: 'sine.inOut', paused: wavesPaused || document.hidden,
-    }));
+    // Waves morph `d` — cheap at 1x but janky under mobile pinch-zoom.
+    // Small screens get a slow opacity swell instead (compositor-only).
+    const isCoarseZoomRisk = matchMedia('(pointer: coarse)').matches || Math.min(screen.width, screen.height) < 500;
+    if (isCoarseZoomRisk) {
+      waveAnimations = [...document.querySelectorAll('.wave-mark')].map((mark, index) => gsap.to(mark, {
+        opacity: .35 + index * .1, duration: 3.4 + index * .5,
+        repeat: -1, yoyo: true, ease: 'sine.inOut', paused: wavesPaused || document.hidden,
+      }));
+    } else {
+      const shapes = [
+        'M32 53 C39 53 46 35 53 35 S67 53 74 53 S88 35 95 35',
+        'M110 116 C116 116 122 130 128 130 S140 116 146 116',
+      ];
+      waveAnimations = [...document.querySelectorAll('.wave-mark')].map((mark, index) => gsap.to(mark, {
+        attr: { d: shapes[index] }, duration: 3.2 + index * .5,
+        repeat: -1, yoyo: true, ease: 'sine.inOut', paused: wavesPaused || document.hidden,
+      }));
+    }
   }
   if (!revealStarted) {
     revealStarted = true;
@@ -338,56 +348,9 @@ guidanceReady = true;
 scheduleGuidance();
 updateGuidance();
 
-// Native loading="lazy" on <img> does not fire inside every nested
-// scroller, so swap data-src/data-srcset in with an IntersectionObserver
-// rooted on the map viewport: near islands start loading 400px early, and
-// crew banners only gain their background once the island is about near.
-// Images keep loading="lazy" + decoding="async" so no-JS visitors still
-// get native deferral via the <noscript> fallback and srcset-less
-// placeholder never prefetches.
-if ('IntersectionObserver' in window) {
-  const eagerLoader = new IntersectionObserver(entries => {
-    for (const entry of entries) {
-      if (!entry.isIntersecting) continue;
-      const image = entry.target;
-      eagerLoader.unobserve(image);
-      if (image.dataset.src) {
-        if (image.dataset.srcset) image.srcset = image.dataset.srcset;
-        image.src = image.dataset.src;
-        delete image.dataset.src;
-        delete image.dataset.srcset;
-      }
-      image.closest('.island')?.querySelector('.crew-link')?.classList.add('has-banner');
-    }
-  }, { root: viewport, rootMargin: '400px' });
-  for (const image of document.querySelectorAll('.island-art img[data-src]')) eagerLoader.observe(image);
-  // Navigating straight to an island loads its artwork immediately.
-  const preloadIsland = track => {
-    const image = document.querySelector(`#${track.id} .island-art img[data-src]`);
-    if (image) {
-      if (image.dataset.srcset) image.srcset = image.dataset.srcset;
-      image.src = image.dataset.src;
-      delete image.dataset.src;
-      delete image.dataset.srcset;
-      eagerLoader.unobserve(image);
-    }
-    document.querySelector(`#${track.id} .crew-link`)?.classList.add('has-banner');
-  };
-  document.querySelectorAll('.island-menu a').forEach(link => link.addEventListener('click', () => {
-    const track = tracks.find(track => `#${track.id}` === link.hash);
-    if (track) preloadIsland(track);
-  }, { passive: true }));
-  window.addEventListener('hashchange', () => {
-    const track = tracks.find(track => `#${track.id}` === location.hash);
-    if (track) preloadIsland(track);
-  });
-} else {
-  for (const image of document.querySelectorAll('.island-art img[data-src]')) {
-    if (image.dataset.srcset) image.srcset = image.dataset.srcset;
-    image.src = image.dataset.src;
-  }
-  for (const link of document.querySelectorAll('.crew-link')) link.classList.add('has-banner');
-}
+// Crew banners are tiny (~7-19 KiB each); load them with the stylesheet
+// instead of swapping backgrounds in JS — no flash, no zoom stutter.
+for (const link of document.querySelectorAll('.crew-link')) link.classList.add('has-banner');
 
 // Observe intent; never prevent defaults or translate a native touch gesture.
 for (const type of ['wheel', 'touchstart', 'pointerdown']) {

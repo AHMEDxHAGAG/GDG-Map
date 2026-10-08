@@ -33,17 +33,7 @@ test('map loads with real artwork and no runtime errors', async ({ page }, testI
   await page.goto('/');
   await expect(page.locator('#skip-reveal')).toBeHidden();
   await page.evaluate(() => document.fonts.ready);
-  // Start view is the compass: on mobile viewports, distant islands ship
-  // placeholders (the 400px preload margin may already have pulled Web).
-  // Desktop's 1280px frame sees most islands, so it loads them eagerly.
-  const isMobileViewport = testInfo.project.use.viewport.width < 600;
-  if (isMobileViewport) {
-    const placeholderCount = await page.locator('.island-art img[src^="data:image"]').count();
-    expect(placeholderCount).toBeGreaterThanOrEqual(3);
-    const shippedCount = await page.evaluate(() => performance.getEntriesByType('resource').filter(entry => entry.name.includes('/images/')).length);
-    expect(shippedCount).toBeLessThanOrEqual(2);
-  }
-  // Navigating loads just that island's artwork plus its crew banner.
+  // Real images render directly — no placeholders, no lazy swap, no zoom flash.
   await openIsland(page, 'Web');
   await expect(page.locator('#web img')).toHaveJSProperty('complete', true);
   expect(await page.locator('#web img').evaluate(image => image.naturalWidth)).toBeGreaterThan(0);
@@ -113,24 +103,31 @@ test('reduced motion uses instant navigation and no decorative tweens', async ({
   expect(await page.evaluate(() => window.gsap.getTweensOf('.wave-mark').length)).toBe(0);
 });
 
-test('wave marks roll gently, can be paused, and stop for reduced motion', async ({ page }) => {
+test('wave marks roll gently, can be paused, and stop for reduced motion', async ({ page }, testInfo) => {
   await page.goto('/');
   const wave = page.locator('.wave-mark').first();
-  const initial = await wave.getAttribute('d');
-  await expect.poll(() => wave.getAttribute('d')).not.toBe(initial);
+  const isMobile = !!testInfo.project.use.hasTouch;
+  // Mobile/coarse pointers get a compositor-only opacity swell (no `d` morph:
+  // it stutters under pinch-zoom); desktop morphs the path shape instead.
+  const attribute = isMobile ? 'opacity' : 'd';
+  const readWave = () => wave.evaluate((element, key) => key === 'opacity'
+    ? getComputedStyle(element).opacity
+    : element.getAttribute('d'), attribute);
+  const initial = await readWave();
+  await expect.poll(readWave).not.toBe(initial);
   await page.locator('summary').click();
   await page.getByRole('button', { name: 'Pause waves', exact: true }).click();
-  const paused = await wave.getAttribute('d');
+  const paused = await readWave();
   await page.waitForTimeout(150);
-  expect(await wave.getAttribute('d')).toBe(paused);
+  expect(await readWave()).toBe(paused);
   await page.getByRole('button', { name: 'Resume waves', exact: true }).click();
-  await expect.poll(() => wave.getAttribute('d')).not.toBe(paused);
+  await expect.poll(readWave).not.toBe(paused);
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await expect(page.locator('#wave-toggle')).toBeHidden();
   expect(await page.evaluate(() => window.gsap.getTweensOf('.wave-mark').length)).toBe(0);
-  const still = await wave.getAttribute('d');
+  const still = await readWave();
   await page.waitForTimeout(150);
-  expect(await wave.getAttribute('d')).toBe(still);
+  expect(await readWave()).toBe(still);
 });
 
 test('mobile starts on the compass with live guidance that hides on arrival', async ({ page }, testInfo) => {

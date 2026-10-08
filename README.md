@@ -25,7 +25,7 @@ The original files in `assests/` are never modified. Every Join the crew link us
 
 ## Performance
 
-First paint ships zero island bytes: every island renders a 1px placeholder (width/height reserve layout, CLS-safe) and an `IntersectionObserver` rooted on `#map-viewport` swaps in `data-src`/`data-srcset` 400px before the island nears. Crew banner backgrounds only apply via `.has-banner` when the island is near, and navigating via Find an island preloads just that island. Images and fonts carry immutable year-long cache headers on Vercel; repeat visits load from cache. Total optimized images: ~486 KiB (`public/images/`), `dist/` ~716 KiB.
+Islands render small 320w/520w WebP directly — no placeholder swapping (it flashes and stutters under mobile pinch-zoom). `decoding="async"` + `fetchpriority="low"` keep images off the critical path. `content-visibility:auto` sits only on the fixed-size `img`, never on the island card (that collapsed layout under zoom). Mobile waves use a compositor-only opacity swell instead of `d`-morphing. Images and fonts carry immutable year-long cache headers on Vercel; repeat visits load from cache. Total optimized images: ~486 KiB (`public/images/`), `dist/` ~716 KiB.
 
 ## Interaction and accessibility
 

@@ -3,14 +3,13 @@ import { tracks, mapSize, compass } from '../src/tracks.js';
 
 const escape = value => String(value).replaceAll('&', '&amp;').replaceAll('"', '&quot;').replaceAll('<', '&lt;').replaceAll('>', '&gt;');
 const navigation = tracks.map(track => `<a href="#${track.id}" style="--accent:${track.accent}">${escape(track.name)}</a>`).join('\n');
-// No image is in view at start (the compass fills the frame), so every
-// island defers its bytes: a 1px placeholder holds layout (width/height
-// already reserve it) and data-src/data-srcset swap in when the island
-// nears the viewport. Native loading="lazy" + async decoding stay as the
-// no-JS / no-IntersectionObserver fallback path.
+// Islands render real images directly (no placeholder swapping: it flashes
+// ugly and stutters under mobile pinch-zoom). The files are small 320w/520w
+// WebP with decoding=async + fetchpriority low so they paint without
+// blocking first paint.
 const islands = tracks.map(track => `
   <section class="island" id="${track.id}" aria-labelledby="${track.id}-title" style="--x:${track.x}px;--y:${track.y}px;--accent:${track.accent}">
-    <div class="island-art"><img src="data:image/gif;base64,R0lGODlhAQABAIAAAP///////yH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==" data-src="/images/${track.artwork}-320.webp" data-srcset="/images/${track.artwork}-320.webp 320w, /images/${track.artwork}-520.webp 520w" sizes="(max-width: 430px) 260px, 260px" width="260" height="260" alt="" loading="lazy" decoding="async" draggable="false"><noscript><img src="/images/${track.artwork}-320.webp" width="260" height="260" alt="" decoding="async" draggable="false"></noscript></div>
+    <div class="island-art"><img src="/images/${track.artwork}-320.webp" srcset="/images/${track.artwork}-320.webp 320w, /images/${track.artwork}-520.webp 520w" sizes="(max-width: 430px) 260px, 260px" width="260" height="260" alt="" decoding="async" fetchpriority="low" draggable="false"></div>
     <h2 id="${track.id}-title" tabindex="-1">${escape(track.name)}</h2>
     <p>${escape(track.description)}</p>
     <a class="crew-link" href="${escape(track.whatsapp)}" target="_blank" rel="noopener noreferrer" aria-label="Join the ${escape(track.name)} crew on WhatsApp (opens in a new tab)">Join the crew</a>

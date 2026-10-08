@@ -72,16 +72,16 @@ test('responsive WebP copies stay small and original images are preserved', asyn
   }
 });
 
-test('first paint ships no island bytes: placeholders defer to data-src', async () => {
+test('first paint ships small responsive images without lazy tricks', async () => {
   const html = await readFile('dist/index.html', 'utf8');
-  assert.ok(!html.includes('fetchpriority="high"'));
-  assert.equal((html.match(/data-src="\/images\//g) || []).length, 5);
-  assert.equal((html.match(/loading="lazy"/g) || []).length, 5);
-  // Placeholders keep layout; real bytes only arrive via data-src/srcset.
-  // Strip <noscript> fallbacks first: they intentionally carry real src.
-  const withoutNoscript = html.replaceAll(/<noscript>.*?<\/noscript>/gs, '');
-  assert.ok(!withoutNoscript.match(/<img src="\/images\//));
-  assert.ok(html.includes('<noscript><img src="/images/'));
+  // No placeholders, no data-src swapping (flashes ugly, stutters on zoom).
+  assert.ok(!html.includes('data:image/gif'));
+  assert.ok(!html.includes('data-src='));
+  assert.ok(!html.includes('loading="lazy"'));
+  assert.ok(!html.includes('<noscript><img'));
+  assert.equal((html.match(/fetchpriority="low"/g) || []).length, 5);
+  assert.ok(html.includes('-320.webp 320w, /images/'));
+  assert.ok(html.includes('-520.webp 520w'));
 });
 
 test('native scrolling, safe areas, and reduced motion are part of the foundation', async () => {
